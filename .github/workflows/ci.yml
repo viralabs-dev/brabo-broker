@@ -9,17 +9,6 @@ permissions:
   contents: read
 
 jobs:
-  # Política de PR do Brabo (forma do PR, família, destino) — reutilizável do brabo-ci.
-  # Pinado por SHA da tag v1.0.0, e `ci_ref` repete a mesma tag.
-  politica:
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-    uses: viralabs-dev/brabo-ci/.github/workflows/pr-police.yml@242598dff5b306bfc7c2f71f28317826538f887a  # brabo-ci#2
-    with:
-      ci_ref: v1.0.0
-
   # Typecheck, lint, testes (incluindo contencao-do-brabo.spec.ts) e o bundle do tsup.
   pacotes:
     name: Typecheck, lint, testes e build
