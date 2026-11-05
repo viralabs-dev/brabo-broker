@@ -35,8 +35,9 @@ pacote no bundle, e a imagem final não tem `node_modules`.
   só existe no estágio de build) e o runtime tem o bundle, o `docker-cli` e mais nada,
   com `npm`/`corepack` removidos, `USER node` e `HEALTHCHECK` em `/health`.
   Build: `docker build -f Dockerfile -t brabo-broker:prod .`
-- `Dockerfile.dev` — desenvolvimento. Instala as dependências no build e roda
-  `src/index.ts` por type stripping, sem bundle.
+- `Dockerfile.dev` — desenvolvimento. Instala as dependências no build e roda `pnpm start`
+  (`tsup && node dist/index.cjs`): o bundle embute o `@brabo/docker-port`, que vem como `.ts`
+  e o Node não remove tipos dentro de `node_modules`.
 
 O socket do Docker (`/var/run/docker.sock`) **não** entra na imagem: quem roda o
 serviço o monta, e só este serviço pode montá-lo.
