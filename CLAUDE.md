@@ -78,7 +78,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   existente exige `docker volume rm` (ou um `chown` pontual como root).
 
 ## Broker e container (regras)
-- `(este repo)`: workspace novo, Node/TS — o ÚNICO processo do produto que
+- este repo: workspace novo, Node/TS — o ÚNICO processo do produto que
   fala com um daemon Docker no SERVIDOR (ADR 0130), e o único serviço com
   `/var/run/docker.sock` montado. Não monte esse socket em mais nenhum. Sem
   framework web (são seis rotas, medido em 2026-09-25, `node:http` puro), imagem própria em
@@ -150,7 +150,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   user?, command?, shared? }] }` (`user` = `<uid>:<gid>` nunca 0, `command` = argv
   depois da imagem, RN-941; o serviço próprio se chama `<instância>-<serviço>`).
 - `brabo-contracts:packages/docker-port`: a porta de Docker e o adaptador de CLI, consumidos
-  por `brabo-runner` e `(este repo)`. Runtime, e por isso NÃO cabe em
+  por `brabo-runner` e este repo. Runtime, e por isso NÃO cabe em
   `brabo-contracts:packages/shared` (100% tipo, invariante travado por teste). Sem passo de
   build: os dois consumidores o EMPACOTAM (`tsup`, `bun build --compile`), e é
   por isso que a api não pode consumi-lo — `pnpm deploy` copia o pacote de
