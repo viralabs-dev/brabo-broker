@@ -1,11 +1,11 @@
 # brabo-broker
 
-O broker de container do Brabo: o **único** processo do produto que fala com o daemon
-Docker do servidor (ADR 0130). Não aceita especificação de container: recebe um
-`projectId` e uma das cinco operações da `DockerPort`, lê a decisão do Arquiteto na
-api e compõe a especificação ele mesmo. Sem porta publicada; só a api o alcança.
+The Brabo container broker: the **only** process of the product that talks to the
+server's Docker daemon (ADR 0130). It accepts no container specification: it receives a
+`projectId` and one of the five operations of the `DockerPort`, reads the Architect's decision
+from the api and composes the specification itself. No published port; only the api reaches it.
 
-## Desenvolvimento
+## Development
 
 ```sh
 pnpm install
@@ -15,44 +15,44 @@ pnpm test       # inclui contencao-do-brabo.spec.ts, a prova da contenção
 pnpm build      # tsup -> dist/index.cjs (bundle com @brabo/docker-port embutido)
 ```
 
-Os testes não sobem container: a `DockerPort` é um duplo em todos eles.
+The tests start no container: the `DockerPort` is a double in all of them.
 
-## Dependências
+## Dependencies
 
-`@brabo/docker-port` vem de [brabo-contracts](https://github.com/viralabs-dev/brabo-contracts)
-por **tag**, como fonte TypeScript sem build:
+`@brabo/docker-port` comes from [brabo-contracts](https://github.com/viralabs-dev/brabo-contracts)
+by **tag**, as TypeScript source with no build:
 
 ```sh
 pnpm add -D "github:viralabs-dev/brabo-contracts#v1.0.0&path:/packages/docker-port"
 ```
 
-Nunca fixe em branch. A dependência é `devDependency` de propósito: o `tsup` embute o
-pacote no bundle, e a imagem final não tem `node_modules`.
+Never pin to a branch. The dependency is a `devDependency` on purpose: `tsup` embeds the
+package in the bundle, and the final image has no `node_modules`.
 
-## Imagens
+## Images
 
-- `Dockerfile` — produção. Multi-estágio: o build resolve a dependência por git (o `git`
-  só existe no estágio de build) e o runtime tem o bundle, o `docker-cli` e mais nada,
-  com `npm`/`corepack` removidos, `USER node` e `HEALTHCHECK` em `/health`.
+- `Dockerfile` — production. Multi-stage: the build resolves the dependency through git (`git`
+  only exists in the build stage) and the runtime has the bundle, the `docker-cli` and nothing else,
+  with `npm`/`corepack` removed, `USER node` and a `HEALTHCHECK` on `/health`.
   Build: `docker build -f Dockerfile -t brabo-broker:prod .`
-- `Dockerfile.dev` — desenvolvimento. Instala as dependências no build e roda `pnpm start`
-  (`tsup && node dist/index.cjs`): o bundle embute o `@brabo/docker-port`, que vem como `.ts`
-  e o Node não remove tipos dentro de `node_modules`.
+- `Dockerfile.dev` — development. Installs the dependencies at build time and runs `pnpm start`
+  (`tsup && node dist/index.cjs`): the bundle embeds `@brabo/docker-port`, which comes as `.ts`,
+  and Node does not strip types inside `node_modules`.
 
-O socket do Docker (`/var/run/docker.sock`) **não** entra na imagem: quem roda o
-serviço o monta, e só este serviço pode montá-lo.
+The Docker socket (`/var/run/docker.sock`) does **not** go into the image: whoever runs the
+service mounts it, and only this service may mount it.
 
-## Documentação
+## Documentation
 
-`docs/` tem a regra de negócio do broker (RNs) em pt-BR e nos três idiomas de tradução
-(`docs/i18n/`). O contexto do produto (ADRs, o plano de execução e o compose) mora no
-monorepo de origem, `daneiel/brabo`, e não aqui.
+`docs/` holds the broker's business rules (RNs), in English only
+(`docs/business-rules/broker.md`). The product context (ADRs, the execution plan and the compose) lives in the
+origin monorepo, `daneiel/brabo`, and not here.
 
-## Origem
+## Origin
 
-Extraído do monorepo `daneiel/brabo` com o histórico de `apps/broker/` e
-`docker/broker/` (AT-700, ADR 0252). Ver [CHANGELOG.md](CHANGELOG.md).
+Extracted from the `daneiel/brabo` monorepo with the history of `apps/broker/` and
+`docker/broker/` (AT-700, ADR 0252). See [CHANGELOG.md](CHANGELOG.md).
 
-## Licença
+## License
 
-MIT. Ver [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
