@@ -17,7 +17,7 @@
     "@brabo/docker-port": "github:viralabs-dev/brabo-contracts#v1.0.0&path:/packages/docker-port",
     "@types/node": "^24.0.0",
     "oxlint": "^1.71.0",
-    "tsup": "^8.5.1",
+    "tsup": "^9.0.0",
     "typescript": "^5.7.3",
     "vitest": "^4.1.12"
   }
