@@ -14,7 +14,7 @@
     "lint": "oxlint --deny-warnings src tsup.config.ts vitest.config.ts"
   },
   "devDependencies": {
-    "@brabo/docker-port": "github:viralabs-dev/brabo-contracts#v1.0.0&path:/packages/docker-port",
+    "@brabo/docker-port": "git+https://github.com/viralabs-dev/brabo-contracts.git#v1.0.0&path:/packages/docker-port",
     "@types/node": "^24.0.0",
     "oxlint": "^1.71.0",
     "tsup": "^8.5.1",
