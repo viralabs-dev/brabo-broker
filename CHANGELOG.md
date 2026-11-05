@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `politica.yml` novo: `pr-police` e `escada` do `brabo-ci` pinados por SHA (AT-733) e o job `politica` saiu do `ci.yml`; inclui a dispensa da PR do bot (ADR 0255).
 - Release por tag da imagem `ghcr.io/viralabs-dev/brabo-broker` (AT-704): `carimbo.yml` (tag-release do brabo-ci) e `release.yml` (build, push por digest, Trivy sobre o digest, cosign keyless por digest com verify, `imagem.json` na Release). A 1ª tag final na `main` sai `v1.0.0`.
 
 ## 1.0.0
