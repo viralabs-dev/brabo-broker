@@ -1,5 +1,6 @@
-# Imagem de DESENVOLVIMENTO do broker (ADR 0130). Roda `src/index.ts` por type
-# stripping do Node, sem bundle — o mesmo que `pnpm start` faz localmente.
+# Imagem de DESENVOLVIMENTO do broker (ADR 0130). Roda o bundle do `tsup` (`pnpm start`),
+# não `src/index.ts`: o `@brabo/docker-port` vem como `.ts` em `node_modules`, onde o Node
+# não faz type stripping.
 #
 # O socket do Docker NÃO entra na imagem: o serviço que a usa recebe
 # `/var/run/docker.sock` por volume, e só ele. Sem a linha `docker-cli` abaixo o
@@ -27,9 +28,12 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+# O bundle é gerado aqui, ainda como root: como `node`, o tsup não escreve em /app (EACCES).
+# O código não é montado no compose de dev, então o bundle da imagem é o que roda.
+RUN pnpm build
 
 USER node
 
 EXPOSE 8090
 
-CMD ["node", "src/index.ts"]
+CMD ["node", "dist/index.cjs"]
