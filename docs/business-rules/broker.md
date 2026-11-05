@@ -79,7 +79,7 @@ decidido), sem `modoLocal` nem `enabled` condicional por modo.
   (`mounted`/`runner` registram `provisioning` em vez de 400),
   `apps/web/src/routes/ProjectCodeTab.test.tsx` (os três modos tratados
   igual)
-- **Decisão arquitetural:** [ADR 0135](../adr/0135-portao-de-imagem-nos-tres-modos.md)
+- **Decisão arquitetural:** [ADR 0135](https://github.com/daneiel/brabo/blob/dev/docs/adr/0135-portao-de-imagem-nos-tres-modos.md)
 - **Origem:** plano do dono do produto, Parte 1 / PR 1.7 — decisão #5 do
   plano original ("Portão RN-105 passa a valer nos TRÊS modos"), já aceita
   antes deste PR existir

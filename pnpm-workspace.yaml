@@ -1,0 +1,4 @@
+# O esbuild é o binário que o tsup usa no build; o postinstall dele só escolhe o
+# binário da plataforma, e é o que o pnpm 11 exige aprovar explicitamente.
+allowBuilds:
+  esbuild: true

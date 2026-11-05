@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+docs
+.github
+*.md
+!THIRD_PARTY_NOTICES.md

@@ -1,0 +1,35 @@
+# Imagem de DESENVOLVIMENTO do broker (ADR 0130). Roda `src/index.ts` por type
+# stripping do Node, sem bundle — o mesmo que `pnpm start` faz localmente.
+#
+# O socket do Docker NÃO entra na imagem: o serviço que a usa recebe
+# `/var/run/docker.sock` por volume, e só ele. Sem a linha `docker-cli` abaixo o
+# serviço sobe e falha na primeira operação com erro NOMEADO (CLI ausente).
+#
+# O `pnpm install` roda no BUILD, nunca no start: a rede do serviço, quando
+# existe, não alcança registry. Mexer em dependência exige rebuild da imagem.
+FROM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94
+
+# hadolint ignore=DL3018
+RUN apk add --no-cache docker-cli git
+
+# pnpm sem corepack (AT-360), mesmo tarball conferido por sha512 da imagem de produção.
+ARG PNPM_VERSION=11.3.0
+ARG PNPM_SHA512=2c403d6594527287672b1f7056343a1f7c3634036a67ffabfcc2b3d7595d843768f8787148d1b57cf7956c90606bbd192857c363af19e96d2d0ec9ec5741d215
+RUN npm pack "pnpm@${PNPM_VERSION}" --silent \
+  && printf "%s  %s\n" "${PNPM_SHA512}" "pnpm-${PNPM_VERSION}.tgz" > /tmp/pnpm.sha512 \
+  && sha512sum -c /tmp/pnpm.sha512 && rm /tmp/pnpm.sha512 \
+  && npm i -g "./pnpm-${PNPM_VERSION}.tgz" \
+  && rm "pnpm-${PNPM_VERSION}.tgz"
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+USER node
+
+EXPOSE 8090
+
+CMD ["node", "src/index.ts"]

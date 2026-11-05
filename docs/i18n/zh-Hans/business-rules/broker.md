@@ -43,5 +43,5 @@ web 一侧不再把 `mounted`/`runner` 当作特例：
   `apps/api/test/application/use-cases/containers/ciclo-de-vida-do-container.use-case.spec.ts`
   （`mounted`/`runner` 记录 `provisioning` 而不是 400）、
   `apps/web/src/routes/ProjectCodeTab.test.tsx`（三种模式同等对待）
-- **架构决策：** [ADR 0135](../adr/0135-portao-de-imagem-nos-tres-modos.md)
+- **架构决策：** [ADR 0135](https://github.com/daneiel/brabo/blob/dev/docs/adr/0135-portao-de-imagem-nos-tres-modos.md)
 - **来源：** 产品负责人的计划，第 1 部分 / PR 1.7——原计划的第 5 号决定（“Portão RN-105 passa a valer nos TRÊS modos”），在这个 PR 存在之前就已被接受

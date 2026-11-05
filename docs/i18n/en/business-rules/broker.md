@@ -80,7 +80,7 @@ decided), with no `modoLocal` nor conditional `enabled` per mode.
   (`mounted`/`runner` register `provisioning` instead of 400),
   `apps/web/src/routes/ProjectCodeTab.test.tsx` (the three modes treated
   equally)
-- **Architectural decision:** [ADR 0135](../adr/0135-portao-de-imagem-nos-tres-modos.md)
+- **Architectural decision:** [ADR 0135](https://github.com/daneiel/brabo/blob/dev/docs/adr/0135-portao-de-imagem-nos-tres-modos.md)
 - **Origin:** the product owner's plan, Part 1 / PR 1.7 — decision #5 of the
   original plan ("The RN-105 gate comes to apply in the THREE modes"), already accepted
   before this PR existed

@@ -80,7 +80,7 @@ dogfooding, такие как `exp001`/`exp002`, — ТЕРЯЕТ доступ �
   (`mounted`/`runner` регистрируют `provisioning` вместо 400),
   `apps/web/src/routes/ProjectCodeTab.test.tsx` (три режима обрабатываются
   одинаково)
-- **Архитектурное решение:** [ADR 0135](../adr/0135-portao-de-imagem-nos-tres-modos.md)
+- **Архитектурное решение:** [ADR 0135](https://github.com/daneiel/brabo/blob/dev/docs/adr/0135-portao-de-imagem-nos-tres-modos.md)
 - **Источник:** план владельца продукта, Часть 1 / PR 1.7 — решение №5
   исходного плана ("Portão RN-105 passa a valer nos TRÊS modos"), принятое ещё
   до появления этого PR

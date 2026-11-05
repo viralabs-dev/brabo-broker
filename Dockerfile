@@ -1,14 +1,15 @@
 # Imagem de PRODUÇÃO do broker de container (ADR 0130) — o único processo do
 # produto que fala com o daemon Docker do servidor.
 #
-# Contexto de build: a RAIZ do repo (o monorepo pnpm precisa do lockfile e de
-# `packages/docker-port`). O `.dockerignore` da raiz é o mesmo dos outros.
+# Contexto de build: a RAIZ deste repo. `@brabo/docker-port` vem de
+# `brabo-contracts` por tag (`github:…#v1.0.0&path:/packages/docker-port`), então
+# o estágio de build precisa de `git` para o `pnpm install`. Esse `git` não chega
+# à imagem final.
 #
 # hadolint global ignore=DL3018
 
 # ---------------------------------------------------------------------------
-# Estágio 1: dependências + bundle. Um estágio só, e não os três da api: este
-# serviço não tem migrations para carregar nem `nest build` para separar.
+# Estágio 1: dependências + bundle.
 # ---------------------------------------------------------------------------
 FROM node:26.13.0-alpine3.24@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS build
 
@@ -24,24 +25,24 @@ RUN npm pack "pnpm@${PNPM_VERSION}" --silent \
   && npm i -g "./pnpm-${PNPM_VERSION}.tgz" \
   && rm "pnpm-${PNPM_VERSION}.tgz"
 
+# O git é só do build: a dependência do `brabo-contracts` é resolvida por git.
+RUN apk add --no-cache git
+
 WORKDIR /repo
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/broker/package.json apps/broker/
-COPY packages/docker-port/package.json packages/docker-port/
+COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile --filter @brabo/broker...
+RUN pnpm install --frozen-lockfile
 
-COPY apps/broker apps/broker
-COPY packages/docker-port packages/docker-port
+COPY src src
+COPY tsconfig.json tsup.config.ts ./
 
-# `tsup` produz UM `dist/index.cjs` com `packages/docker-port` embutido, e isso
+# `tsup` produz UM `dist/index.cjs` com `@brabo/docker-port` embutido, e isso
 # é estrutural, não estético: o `main` daquele pacote aponta para `.ts` cru, e o
 # Node se recusa a fazer type stripping dentro de `node_modules`. Uma imagem que
 # o resolvesse em runtime morreria no boot com
-# `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` — o mesmo erro que
-# `packages-shared-so-tipos.spec.ts` existe para prevenir do lado da api.
-RUN pnpm --filter @brabo/broker build
+# `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`.
+RUN pnpm build
 
 # ---------------------------------------------------------------------------
 # Estágio 2: runtime. O bundle, o CLI do docker, e mais nada.
@@ -82,19 +83,12 @@ WORKDIR /app
 
 # Só o bundle. Não há `node_modules` no estágio final: o `tsup` embutiu tudo, e
 # este pacote não tem binding nativo nenhum.
-COPY --from=build --chown=node:node /repo/apps/broker/dist/index.cjs ./index.cjs
+COPY --from=build --chown=node:node /repo/dist/index.cjs ./index.cjs
 
-# A oferta escrita de fonte viaja DENTRO da imagem, na MESMA forma da do engine
-# (`docker/engine/Dockerfile.prod`, AT-020): o mesmo `THIRD_PARTY_NOTICES.md`,
-# no mesmo caminho, do root e só leitura (0644), copiado ANTES do `USER`. Por
-# decisão do mantenedor (AT-120), TODA imagem publicada a carrega — nenhuma é
-# declarada dispensada. Quem faz `docker pull` não tem o repositório.
-# A PASTA nasce antes, e por um `RUN`, não pelo `COPY`: o BuildKit aplica o
-# `--chmod` também às pastas que o `COPY` cria, e `/usr/share/doc/brabo` nascia
-# `0644` — sem o bit de execução, ninguém além do root a atravessa, e o `cat`
-# como o `USER` da imagem dava "Permission denied" (medido na AT-120, inclusive
-# na imagem do engine). Com a pasta já existente em `0755`, o `COPY` só cria o
-# arquivo.
+# A oferta escrita de fonte viaja DENTRO da imagem (AT-120): quem faz
+# `docker pull` não tem o repositório. A PASTA nasce antes, por um `RUN`, não
+# pelo `COPY`: o BuildKit aplica o `--chmod` também às pastas que o `COPY` cria,
+# e a pasta nascia `0644`, sem o bit de execução.
 RUN install -d -m 0755 /usr/share/doc/brabo
 COPY --chown=root:root --chmod=0644 THIRD_PARTY_NOTICES.md \
      /usr/share/doc/brabo/THIRD_PARTY_NOTICES.md
