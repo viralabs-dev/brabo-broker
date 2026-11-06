@@ -84,3 +84,34 @@ decided), with no `modoLocal` nor conditional `enabled` per mode.
 - **Origin:** the product owner's plan, Part 1 / PR 1.7 — decision #5 of the
   original plan ("The RN-105 gate comes to apply in the THREE modes"), already accepted
   before this PR existed
+
+## The broker restarts only the app process (RN-1025)
+
+### RN-1025 — `POST /containers/:projectId/app/restart` restarts the app process in place {#rn-1025}
+
+The broker's sixth operation, on top of the contract `DockerPort.reiniciarApp`
+(RN-1024, ADR 0264, which revises the "five operations" of ADR 0228). It restarts
+ONLY the app process inside the project's running container: no `stop`/`start`, so
+the `exec` commands of the running lanes are not touched.
+
+- **The command never comes from the request.** The route ignores the body. The
+  `comandoDoApp` is the one in the api's `container-spec` (the CURRENT decision),
+  fetched the same way `start` fetches it. A project without a current command
+  gets a named 409 (`SemComandoDoAppError`), and the port is not called. A
+  `runner` project gets the same 409 as the other routes (the container is not on
+  this host).
+- **The response is the typed result, with no free text and no log.** `200` with
+  `{"reiniciou": true}`, or `{"reiniciou": false, "motivo": "sem_container" |
+  "tempo_esgotado" | "falha_no_exec"}`, or `{"reiniciou": false, "motivo":
+  "app_saiu", "exitCode": <n>}`. The app command may carry a secret, so no log
+  excerpt travels. A failed restart is still `200`: the failure is the answer,
+  not an error of the broker. The time cap (`TIMEOUT_DO_REINICIO_MS`, 30 s) is
+  the port's, and it answers `tempo_esgotado`.
+- **Same gates as the neighbours:** service token (401), `POST` only (405),
+  closed router (`/containers/:id/app/restart` is the only path with `app`).
+
+- **Where:** `apps/broker/src/operacoes.ts:268` (`reiniciarApp`),
+  `apps/broker/src/operacoes.ts:281` (`SemComandoDoAppError`),
+  `apps/broker/src/servidor.ts:146` (route), `apps/broker/src/servidor.ts:209` (dispatch)
+- **Test:** `apps/broker/src/servidor.spec.ts` ("POST /containers/:id/app/restart (RN-1025)")
+- **Architectural decision:** ADR 0264

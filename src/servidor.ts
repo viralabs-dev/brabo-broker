@@ -1,5 +1,5 @@
 /**
- * A superfície HTTP do broker: `/health` e as CINCO operações. Nada mais.
+ * A superfície HTTP do broker: `/health` e as SEIS operações. Nada mais.
  *
  * ## O roteador é uma FUNÇÃO, e o `node:http` é um invólucro
  *
@@ -53,8 +53,10 @@ import {
   LocalizacaoIndisponivelError,
   ModoDeExecucaoNaoSuportadoError,
   RaizDeWorkspacesNaoConfiguradaError,
+  reiniciarApp,
   remove,
   removeQa,
+  SemComandoDoAppError,
   SemDecisaoDeImagemError,
   start,
   startQa,
@@ -141,6 +143,10 @@ export function rotaDeContainer(caminho: string): RotaDeContainer | null {
   if (partes.length === 3 && partes[2] !== undefined) {
     return { projectId, operacao: partes[2] };
   }
+  // RN-1025: `/containers/:id/app/restart` — rota fixa, sem parâmetro.
+  if (partes.length === 4 && partes[2] === 'app' && partes[3] === 'restart') {
+    return { projectId, operacao: 'app/restart' };
+  }
   // ADR 0229: `/containers/:id/qa/:chave/<start|remove|exec>` — fechado, chave de 8.
   const chave = partes[3];
   const op = partes[4];
@@ -200,13 +206,16 @@ async function despachar(
       return { status: 200, corpo: { removido: true } };
     case 'exec':
       return { status: 200, corpo: await exec(deps, projectId, pedido.corpo) };
+    case 'app/restart':
+      // O corpo é descartado de propósito: o comando é o da api (RN-1025).
+      return { status: 200, corpo: await reiniciarApp(deps, projectId) };
     default:
       return {
         status: 404,
         corpo: {
           erro:
-            `operação "${operacao}" não existe. São cinco: start, stop, ` +
-            'remove, exec e a leitura (GET). Uma sexta é decisão de produto ' +
+            `operação "${operacao}" não existe. São seis: start, stop, ` +
+            'remove, exec, app/restart e a leitura (GET). Uma sétima é decisão de produto ' +
             'com ADR, nunca um parâmetro a mais',
           origem: 'politica',
         },
@@ -250,6 +259,7 @@ export function respostaDeErro(erro: unknown): RespostaDoBroker {
     erro instanceof ContainerNaoGerenciadoError ||
     erro instanceof ContainerAusenteError ||
     erro instanceof SemDecisaoDeImagemError ||
+    erro instanceof SemComandoDoAppError ||
     erro instanceof ModoDeExecucaoNaoSuportadoError ||
     erro instanceof LocalizacaoIndisponivelError
   ) {

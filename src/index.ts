@@ -5,7 +5,7 @@
  *
  * ## O que ele é, em cinco linhas
  *
- * Recebe da api um `projectId` e uma das cinco operações da `DockerPort`. Vai
+ * Recebe da api um `projectId` e uma das seis operações da `DockerPort`. Vai
  * à api LER a decisão do Arquiteto e o contexto do projeto. COMPÕE a
  * especificação ele mesmo e a faz passar pelo parse que produz o tipo fechado.
  * Entrega ao daemon pelo mesmo adaptador de CLI que o runner usa. Nunca aceita

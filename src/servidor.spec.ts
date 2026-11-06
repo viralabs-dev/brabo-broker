@@ -8,6 +8,7 @@ import {
   type EspecificacaoDeContainer,
   type EstadoObservadoDoContainer,
   type PedidoDeExec,
+  type ResultadoDoReinicio,
   type ResultadoDeExec,
 } from '@brabo/docker-port';
 import { tratar, rotaDeContainer } from './servidor.ts';
@@ -46,6 +47,7 @@ class DockerDeTeste extends DockerPort {
   readonly chamadas: Array<{ operacao: string; argumento: unknown }> = [];
   observado: EstadoObservadoDoContainer | null = null;
   erroAoIniciar: Error | null = null;
+  resultadoDoReinicio: ResultadoDoReinicio = { reiniciou: true };
 
   async start(spec: EspecificacaoDeContainer): Promise<ContainerIniciado> {
     this.chamadas.push({ operacao: 'start', argumento: spec });
@@ -61,6 +63,10 @@ class DockerDeTeste extends DockerPort {
   async inspect(nome: string): Promise<EstadoObservadoDoContainer | null> {
     this.chamadas.push({ operacao: 'inspect', argumento: nome });
     return this.observado;
+  }
+  async reiniciarApp(nome: string, comandoDoApp: string): Promise<ResultadoDoReinicio> {
+    this.chamadas.push({ operacao: 'reiniciarApp', argumento: { nome, comandoDoApp } });
+    return this.resultadoDoReinicio;
   }
   async exec(nome: string, pedido: PedidoDeExec): Promise<ResultadoDeExec> {
     this.chamadas.push({ operacao: 'exec', argumento: { nome, pedido } });
@@ -209,7 +215,7 @@ describe('a especificação é COMPUTADA, nunca recebida', () => {
   });
 });
 
-describe('as cinco operações, e nada além', () => {
+describe('as seis operações, e nada além', () => {
   it('stop/remove/inspect trabalham pelo NOME derivado, sem pedir imagem', async () => {
     const { deps, docker } = montar({ contexto: { imagem: null, imagemVersao: 0 } });
 
@@ -238,13 +244,13 @@ describe('as cinco operações, e nada além', () => {
     expect(docker.chamadas).toHaveLength(0);
   });
 
-  it('uma sexta operação não existe — 404 que diz quais são as cinco', async () => {
+  it('uma sétima operação não existe — 404 que diz quais são as seis', async () => {
     const { deps, docker } = montar();
 
     const r = await tratar(deps, pedido('POST', '/containers/p/run', { imagem: 'x:1' }));
 
     expect(r.status).toBe(404);
-    expect(String((r.corpo as { erro: string }).erro)).toContain('São cinco');
+    expect(String((r.corpo as { erro: string }).erro)).toContain('São seis');
     expect(docker.chamadas).toHaveLength(0);
   });
 
@@ -253,7 +259,63 @@ describe('as cinco operações, e nada além', () => {
     expect(rotaDeContainer('/containers/p/start')).toEqual({ projectId: 'p', operacao: 'start' });
     expect(rotaDeContainer('/containers')).toBeNull();
     expect(rotaDeContainer('/containers/p/start/extra')).toBeNull();
+    expect(rotaDeContainer('/containers/p/app/restart')).toEqual({ projectId: 'p', operacao: 'app/restart' });
+    expect(rotaDeContainer('/containers/p/app/outra')).toBeNull();
+    expect(rotaDeContainer('/containers/p/app/restart/x')).toBeNull();
     expect(rotaDeContainer('/outra-coisa')).toBeNull();
+  });
+});
+
+describe('POST /containers/:id/app/restart (RN-1025)', () => {
+  const rota = '/containers/p/app/restart';
+  const comTeste = { contexto: { comandoDoApp: 'npm start' } };
+
+  it('usa o comando da api; o corpo da requisição é ignorado', async () => {
+    const { deps, docker } = montar(comTeste);
+
+    const r = await tratar(deps, pedido('POST', rota, { comandoDoApp: 'rm -rf /', comando: 'x' }));
+
+    expect(r).toEqual({ status: 200, corpo: { reiniciou: true } });
+    expect(docker.chamadas).toEqual([
+      { operacao: 'reiniciarApp', argumento: { nome: 'exp002-f52be111', comandoDoApp: 'npm start' } },
+    ]);
+  });
+
+  it('o resultado é o tipado, sem texto livre, para cada motivo', async () => {
+    const { deps, docker } = montar(comTeste);
+    const casos: ResultadoDoReinicio[] = [
+      { reiniciou: false, motivo: 'sem_container' },
+      { reiniciou: false, motivo: 'tempo_esgotado' },
+      { reiniciou: false, motivo: 'falha_no_exec' },
+      { reiniciou: false, motivo: 'app_saiu', exitCode: 3 },
+    ];
+    for (const caso of casos) {
+      docker.resultadoDoReinicio = caso;
+      const r = await tratar(deps, pedido('POST', rota));
+      expect(r).toEqual({ status: 200, corpo: caso });
+    }
+  });
+
+  it('sem comando de app vigente é 409 e a porta não é tocada', async () => {
+    for (const comandoDoApp of [undefined, null, '   ']) {
+      const { deps, docker } = montar({ contexto: { comandoDoApp } });
+      const r = await tratar(deps, pedido('POST', rota, { comandoDoApp: 'npm start' }));
+      expect(r.status).toBe(409);
+      expect(docker.chamadas).toHaveLength(0);
+    }
+  });
+
+  it('projeto em modo runner é 409: o broker não alcança aquele container', async () => {
+    const { deps, docker } = montar({ contexto: { comandoDoApp: 'npm start', executionMode: 'runner' } });
+    expect((await tratar(deps, pedido('POST', rota))).status).toBe(409);
+    expect(docker.chamadas).toHaveLength(0);
+  });
+
+  it('exige token e método POST', async () => {
+    const { deps, docker } = montar(comTeste);
+    expect((await tratar(deps, { ...pedido('POST', rota), token: null })).status).toBe(401);
+    expect((await tratar(deps, pedido('GET', rota))).status).toBe(405);
+    expect(docker.chamadas).toHaveLength(0);
   });
 });
 
