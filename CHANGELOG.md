@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Imagem a cada carimbo `-dev` e no hotfix, com limpeza do GHCR (AT-765): o `release.yml` reage também a `vX.Y.Z-dev.N` (publica, escaneia, assina; o `imagem.json` vai como artefato do run, sem Release); o `ci.yml` ganha o job `imagem-hotfix` (`:sha-<12>` em PR `hotfix/*` para a `main`, com Trivy e cosign); o `limpeza-ghcr.yml` apaga o `sha-` da PR fechada e guarda as 10 `-dev.*` mais novas, sem tocar em `vX.Y.Z`.
 - Doc de volta ao pt-BR (decisão do dono, 06/11/2026, revertendo a ADR 0260; AT-766): `README.md` e `docs/business-rules/broker.md` em pt-BR, sem `idioma_original`; o `README.md` passa a citar as seis operações, o `@brabo/docker-port` em `v1.2.0-dev.1`, a imagem `ghcr.io/viralabs-dev/brabo-broker` e a seção "Repositórios do Brabo"; os links para `daneiel/brabo` passam a apontar para `viralabs-dev/brabo`.
 - `POST /containers/:projectId/app/restart` (AT-617, RN-1025): a sexta operação reinicia só o processo do app via `DockerPort.reiniciarApp`; o comando vem do `container-spec` da api, nunca do corpo, e a resposta é o resultado tipado. O `@brabo/docker-port` passa para `v1.2.0-dev.1`.
 - `README.md`: traduzido para o inglês e corrigida a linha velha sobre `docs/i18n/` (AT-745).
