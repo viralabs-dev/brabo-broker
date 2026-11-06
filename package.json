@@ -4,7 +4,7 @@
   "license": "MIT",
   "private": true,
   "packageManager": "pnpm@11.3.0",
-  "description": "O broker de container: o ÚNICO processo do produto que fala com o daemon Docker do servidor. Não aceita especificação — recebe um projectId e uma das cinco operações, lê a decisão do Arquiteto da api e COMPÕE a especificação ele mesmo.",
+  "description": "O broker de container: o ÚNICO processo do produto que fala com o daemon Docker do servidor. Não aceita especificação — recebe um projectId e uma das seis operações, lê a decisão do Arquiteto da api e COMPÕE a especificação ele mesmo.",
   "type": "module",
   "scripts": {
     "start": "tsup && node dist/index.cjs",

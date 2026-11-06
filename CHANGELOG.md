@@ -2,9 +2,10 @@
 
 ## Unreleased
 
-- `POST /containers/:projectId/app/restart` (AT-617, RN-1025): the sixth operation restarts only the app process via `DockerPort.reiniciarApp`; the command comes from the api `container-spec`, never from the body, and the answer is the typed result. `@brabo/docker-port` moves to `v1.2.0-dev.1`.
-- `README.md`: translated to English and the stale `docs/i18n/` line fixed (AT-745).
-- Docs are English-only now (AT-745, ADR 0260): `docs/business-rules/broker.md` is the English source (`idioma_original: en`) and `docs/i18n/` is removed.
+- Doc de volta ao pt-BR (decisão do dono, 06/11/2026, revertendo a ADR 0260; AT-766): `README.md` e `docs/business-rules/broker.md` em pt-BR, sem `idioma_original`; o `README.md` passa a citar as seis operações, o `@brabo/docker-port` em `v1.2.0-dev.1`, a imagem `ghcr.io/viralabs-dev/brabo-broker` e a seção "Repositórios do Brabo"; os links para `daneiel/brabo` passam a apontar para `viralabs-dev/brabo`.
+- `POST /containers/:projectId/app/restart` (AT-617, RN-1025): a sexta operação reinicia só o processo do app via `DockerPort.reiniciarApp`; o comando vem do `container-spec` da api, nunca do corpo, e a resposta é o resultado tipado. O `@brabo/docker-port` passa para `v1.2.0-dev.1`.
+- `README.md`: traduzido para o inglês e corrigida a linha velha sobre `docs/i18n/` (AT-745).
+- A doc passou a ser só em inglês (AT-745, ADR 0260): `docs/business-rules/broker.md` virou a fonte em inglês (`idioma_original: en`) e a `docs/i18n/` saiu.
 - Correção do dev (AT-737): `pnpm start` e o `Dockerfile.dev` rodam o bundle (`tsup && node dist/index.cjs`) em vez de `node src/index.ts`, que morria com `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` por causa do `@brabo/docker-port` em `.ts` dentro de `node_modules`.
 - `politica.yml` novo: `pr-police` e `escada` do `brabo-ci` pinados por SHA (AT-733) e o job `politica` saiu do `ci.yml`; inclui a dispensa da PR do bot (ADR 0255).
 - Release por tag da imagem `ghcr.io/viralabs-dev/brabo-broker` (AT-704): `carimbo.yml` (tag-release do brabo-ci) e `release.yml` (build, push por digest, Trivy sobre o digest, cosign keyless por digest com verify, `imagem.json` na Release). A 1ª tag final na `main` sai `v1.0.0`.
