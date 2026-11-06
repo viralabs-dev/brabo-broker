@@ -5,6 +5,7 @@ import {
   type EspecificacaoDeContainer,
   type EstadoObservadoDoContainer,
   type PedidoDeExec,
+  type ResultadoDoReinicio,
   type ResultadoDeExec,
 } from '@brabo/docker-port';
 import { lerConfiguracao } from './config.ts';
@@ -51,6 +52,9 @@ class DockerDeTeste extends DockerPort {
   async remove(): Promise<void> {}
   async inspect(): Promise<EstadoObservadoDoContainer | null> {
     return null;
+  }
+  async reiniciarApp(): Promise<ResultadoDoReinicio> {
+    return { reiniciou: false, motivo: 'sem_container' };
   }
   async exec(_nome: string, _pedido: PedidoDeExec): Promise<ResultadoDeExec> {
     return { exitCode: 0, output: '', timedOut: false };

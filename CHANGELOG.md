@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `POST /containers/:projectId/app/restart` (AT-617, RN-1025): the sixth operation restarts only the app process via `DockerPort.reiniciarApp`; the command comes from the api `container-spec`, never from the body, and the answer is the typed result. `@brabo/docker-port` moves to `v1.2.0-dev.1`.
 - `README.md`: translated to English and the stale `docs/i18n/` line fixed (AT-745).
 - Docs are English-only now (AT-745, ADR 0260): `docs/business-rules/broker.md` is the English source (`idioma_original: en`) and `docs/i18n/` is removed.
 - Correção do dev (AT-737): `pnpm start` e o `Dockerfile.dev` rodam o bundle (`tsup && node dist/index.cjs`) em vez de `node src/index.ts`, que morria com `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING` por causa do `@brabo/docker-port` em `.ts` dentro de `node_modules`.

@@ -85,7 +85,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   `docker/broker/`, e o binário `docker` DENTRO da imagem (`docker-cli`, só o
   cliente) — preço declarado da decisão de usar um mecanismo só dos dois lados.
   **Ele não aceita especificação de container**: recebe um `projectId` e uma
-  das cinco operações da `DockerPort`, vai à api LER a decisão do Arquiteto
+  das seis operações da `DockerPort`, vai à api LER a decisão do Arquiteto
   (`GET /internal/projects/:projectId/container-spec`) e COMPÕE imagem, rede,
   recursos e o único mount. Não existe campo em que se escreva `privileged`,
   `cap_add`, `network: host` ou um `-v` livre — se a spec viajasse no corpo, a
@@ -141,7 +141,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   `portas` (só `-p 127.0.0.1:H:C`), `dns` e `hostsExtras` são validados em
   `spec-de-container.ts`. O papel `qa` (`spec.qa`) é a instância efêmera
   `brabo-qa-<workspace>-<chave>`, sem `--restart`, e `stop`/`remove`/`inspect`/
-  `exec` aceitam `alvo: { papel: 'qa', chave }` (a porta segue com CINCO
+  `exec` aceitam `alvo: { papel: 'qa', chave }` (a porta segue com SEIS
   operações; só `brabo.papel=qa` é alcançado). Rotas novas do broker, no
   roteador fechado: `/containers/:projectId/qa/:chave/{start,remove,exec}` —
   tudo o mais segue 404. Contrato api -> broker: campos `comandoDoApp`, `ports`
