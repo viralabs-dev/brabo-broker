@@ -12,7 +12,7 @@ jobs:
   # Typecheck, lint, testes (incluindo contencao-do-brabo.spec.ts) e o bundle do tsup.
   pacotes:
     name: Typecheck, lint, testes e build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -33,7 +33,7 @@ jobs:
   # Imagem de produção: builda, NÃO publica. A publicação é do release, por digest, no fluxo do produto.
   imagem:
     name: Build da imagem (sem publicar)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -47,7 +47,7 @@ jobs:
   imagem-hotfix:
     name: Imagem do hotfix (sha-)
     if: github.event_name == 'pull_request' && github.base_ref == 'main' && startsWith(github.head_ref, 'hotfix/') && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 40
     permissions:
       contents: read
