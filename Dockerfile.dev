@@ -1,6 +1,6 @@
 # Imagem de DESENVOLVIMENTO do broker (ADR 0130). Roda o bundle do `tsup` (`pnpm start`),
-# não `src/index.ts`: o `@brabo/docker-port` vem como `.ts` em `node_modules`, onde o Node
-# não faz type stripping.
+# não `src/index.ts`. O `@brabo/docker-port` vem do GitHub Packages: o token entra só como
+# secret do BuildKit (`--secret id=npmrc,src=$HOME/.npmrc`), nunca em `ARG`/`ENV` (RN-1039).
 #
 # O socket do Docker NÃO entra na imagem: o serviço que a usa recebe
 # `/var/run/docker.sock` por volume, e só ele. Sem a linha `docker-cli` abaixo o
@@ -11,7 +11,7 @@
 FROM node:26-alpine@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache docker-cli git
+RUN apk add --no-cache docker-cli
 
 # pnpm sem corepack (AT-360), mesmo tarball conferido por sha512 da imagem de produção.
 ARG PNPM_VERSION=11.3.0
@@ -24,8 +24,8 @@ RUN npm pack "pnpm@${PNPM_VERSION}" --silent \
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install --frozen-lockfile
 
 COPY . .
 # O bundle é gerado aqui, ainda como root: como `node`, o tsup não escreve em /app (EACCES).

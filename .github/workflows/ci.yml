@@ -14,6 +14,9 @@ jobs:
     name: Typecheck, lint, testes e build
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: read # o @brabo/docker-port vem do GitHub Packages (AT-770)
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413  # v6.1.0
@@ -23,8 +26,12 @@ jobs:
         with:
           node-version: '26.10.0'
           cache: pnpm
-      # `@brabo/docker-port` vem de brabo-contracts por tag (git); o runner tem rede para o GitHub.
+          registry-url: https://npm.pkg.github.com
+          scope: '@viralabs-dev'
+      # `@brabo/docker-port` é o pacote `@viralabs-dev/brabo-docker-port` do GitHub Packages (alias do pnpm).
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
@@ -35,11 +42,19 @@ jobs:
     name: Build da imagem (sem publicar)
     runs-on: ubuntu-26.04
     timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+      # O token do registry vai SÓ como secret do BuildKit (RN-1039), nunca em ARG/ENV.
+      - name: npmrc do registry (secret do BuildKit)
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "${NPM_TOKEN}" > "${RUNNER_TEMP}/npmrc"
       - name: Build (sem push)
-        run: docker build -f Dockerfile -t brabo-broker:ci .
+        run: docker build --secret "id=npmrc,src=${RUNNER_TEMP}/npmrc" -f Dockerfile -t brabo-broker:ci .
 
   # Imagem da PR: publica `:sha-<12 do head>` para o E2E (PR hotfix/* -> main, AT-765) e para o regressivo
   # (PR -> dev, AT-769; decisão do dono 06/11: assinada, apagada ao fechar a PR ou em 7 dias).
@@ -75,6 +90,10 @@ jobs:
       - name: Tag sha-<12>
         id: v
         run: echo "tag=${TAG_SHA:0:16}" >> "$GITHUB_OUTPUT"
+      - name: npmrc do registry (secret do BuildKit, RN-1039)
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "${NPM_TOKEN}" > "${RUNNER_TEMP}/npmrc"
       - name: Build e push
         id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
@@ -82,6 +101,8 @@ jobs:
           context: .
           file: Dockerfile
           push: true
+          secret-files: |
+            npmrc=${{ runner.temp }}/npmrc
           tags: |
             ${{ env.IMAGEM }}:${{ steps.v.outputs.tag }}
           build-args: |

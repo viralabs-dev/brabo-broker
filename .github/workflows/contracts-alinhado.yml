@@ -1,0 +1,16 @@
+name: contracts-alinhado
+
+# A versão do brabo-contracts é UMA só neste repo: alias do `package.json` = lock (AT-770, RN-1038).
+# Reutilizável do brabo-ci; avisa se difere do `componentes.json` do brabo. NÃO é check obrigatório.
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts-alinhado:
+    uses: viralabs-dev/brabo-ci/.github/workflows/contracts-alinhado.yml@4976af2cd947966df43bbbcae5c3c80f91ac2310  # brabo-ci dev, R1 da AT-770
+    with:
+      ci_ref: 4976af2cd947966df43bbbcae5c3c80f91ac2310  # brabo-ci dev, R1 da AT-770

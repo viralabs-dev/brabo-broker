@@ -47,6 +47,12 @@ jobs:
             Imagem no GHCR|https://github.com/viralabs-dev/brabo-broker/pkgs/container/brabo-broker
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
 
+      # O token do registry (GitHub Packages, AT-770) vai SÓ como secret do BuildKit (RN-1039).
+      - name: npmrc do registry (secret do BuildKit)
+        env:
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '//npm.pkg.github.com/:_authToken=%s\n' "${NPM_TOKEN}" > "${RUNNER_TEMP}/npmrc"
+
       - name: A versão
         id: v
         run: |
@@ -70,6 +76,8 @@ jobs:
           file: Dockerfile
           push: ${{ env.PUBLICAR == 'true' }}
           load: ${{ env.PUBLICAR != 'true' }}
+          secret-files: |
+            npmrc=${{ runner.temp }}/npmrc
           tags: |
             ${{ env.IMAGEM }}:${{ steps.v.outputs.tag }}
           build-args: |

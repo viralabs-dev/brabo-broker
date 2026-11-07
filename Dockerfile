@@ -1,10 +1,11 @@
 # Imagem de PRODUÇÃO do broker de container (ADR 0130) — o único processo do
 # produto que fala com o daemon Docker do servidor.
 #
-# Contexto de build: a RAIZ deste repo. `@brabo/docker-port` vem de
-# `brabo-contracts` por tag (`github:…#v1.0.0&path:/packages/docker-port`), então
-# o estágio de build precisa de `git` para o `pnpm install`. Esse `git` não chega
-# à imagem final.
+# Contexto de build: a RAIZ deste repo. `@brabo/docker-port` é o pacote
+# `@viralabs-dev/brabo-docker-port` do GitHub Packages (alias do pnpm, AT-770). O
+# registry exige token: ele entra SÓ como secret do BuildKit (`--secret
+# id=npmrc,src=$HOME/.npmrc`), montado durante o `RUN` do install e nunca em
+# `ARG`, `ENV` ou camada (RN-1039).
 #
 # hadolint global ignore=DL3018
 
@@ -25,23 +26,17 @@ RUN npm pack "pnpm@${PNPM_VERSION}" --silent \
   && npm i -g "./pnpm-${PNPM_VERSION}.tgz" \
   && rm "pnpm-${PNPM_VERSION}.tgz"
 
-# O git é só do build: a dependência do `brabo-contracts` é resolvida por git.
-RUN apk add --no-cache git
-
 WORKDIR /repo
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install --frozen-lockfile
 
 COPY src src
 COPY tsconfig.json tsup.config.ts ./
 
-# `tsup` produz UM `dist/index.cjs` com `@brabo/docker-port` embutido, e isso
-# é estrutural, não estético: o `main` daquele pacote aponta para `.ts` cru, e o
-# Node se recusa a fazer type stripping dentro de `node_modules`. Uma imagem que
-# o resolvesse em runtime morreria no boot com
-# `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`.
+# `tsup` produz UM `dist/index.cjs` com `@brabo/docker-port` embutido: o pacote é
+# `devDependency` e a imagem final não tem `node_modules` nem registry.
 RUN pnpm build
 
 # ---------------------------------------------------------------------------

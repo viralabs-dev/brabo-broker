@@ -114,3 +114,21 @@ então os comandos `exec` das lanes em andamento não são tocados.
   `apps/broker/src/servidor.ts:146` (rota), `apps/broker/src/servidor.ts:209` (despacho)
 - **Teste:** `apps/broker/src/servidor.spec.ts` ("POST /containers/:id/app/restart (RN-1025)")
 - **Decisão arquitetural:** ADR 0264
+
+## O token do registry só entra como secret do BuildKit (RN-1039)
+
+### RN-1039 — O token do GitHub Packages nunca vai para camada, `ARG` ou `ENV` {#rn-1039}
+
+O `@brabo/docker-port` é instalado do GitHub Packages (`@viralabs-dev/brabo-docker-port`,
+AT-770), e o registry exige token até para pacote público. O token só existe durante o
+`RUN` que instala, como secret do BuildKit.
+
+- **Dockerfile:** todo `pnpm install` é `RUN --mount=type=secret,id=npmrc,target=/root/.npmrc`.
+  Nenhum `ARG`/`ENV` leva token, e o `~/.npmrc` nunca é copiado para a imagem.
+- **Repo:** o `.npmrc` versionado tem só `@viralabs-dev:registry=https://npm.pkg.github.com`.
+- **CI:** o `GITHUB_TOKEN` vira um arquivo temporário, entregue por `secret-files` (ou
+  `docker build --secret`), nunca por `build-args`.
+
+- **Onde:** `Dockerfile`, `Dockerfile.dev`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`
+- **Teste:** `src/token-do-registry.spec.ts:23` (`describe`)
+- **Decisão arquitetural:** ADR 0270
