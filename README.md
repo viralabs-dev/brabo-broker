@@ -81,6 +81,10 @@ O Brabo é dividido em repositórios por camada (ADR 0252), e a documentação c
 Extraído do monorepo original do Brabo com o histórico de `apps/broker/` e `docker/broker/`
 (AT-700, ADR 0252). Veja o [CHANGELOG.md](CHANGELOG.md).
 
+## Apoie
+
+Se o projeto te ajuda, você pode [pagar um café no Ko-fi](https://ko-fi.com/daneiel).
+
 ## Licença
 
 MIT. Veja o [LICENSE](LICENSE).
