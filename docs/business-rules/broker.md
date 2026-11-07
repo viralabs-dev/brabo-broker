@@ -79,7 +79,38 @@ decidido), sem `modoLocal` nem `enabled` condicional por modo.
   (`mounted`/`runner` registram `provisioning` em vez de 400),
   `apps/web/src/routes/ProjectCodeTab.test.tsx` (os três modos tratados
   igual)
-- **Decisão arquitetural:** [ADR 0135](https://github.com/daneiel/brabo/blob/dev/docs/adr/0135-portao-de-imagem-nos-tres-modos.md)
+- **Decisão arquitetural:** [ADR 0135](https://github.com/viralabs-dev/brabo/blob/dev/docs/adr/0135-portao-de-imagem-nos-tres-modos.md)
 - **Origem:** plano do dono do produto, Parte 1 / PR 1.7 — decisão #5 do
   plano original ("Portão RN-105 passa a valer nos TRÊS modos"), já aceita
   antes deste PR existir
+
+## O broker reinicia só o processo do app (RN-1025)
+
+### RN-1025 — `POST /containers/:projectId/app/restart` reinicia o processo do app no lugar {#rn-1025}
+
+A sexta operação do broker, sobre o contrato `DockerPort.reiniciarApp`
+(RN-1024, ADR 0264, que revisa as "cinco operações" da ADR 0228). Ela reinicia
+SÓ o processo do app dentro do container do projeto em execução: sem `stop`/`start`,
+então os comandos `exec` das lanes em andamento não são tocados.
+
+- **O comando nunca vem do pedido.** A rota ignora o corpo. O
+  `comandoDoApp` é o do `container-spec` da api (a decisão VIGENTE),
+  buscado do mesmo jeito que o `start` o busca. Projeto sem comando vigente
+  recebe um 409 nomeado (`SemComandoDoAppError`), e a porta não é chamada. Projeto
+  `runner` recebe o mesmo 409 das outras rotas (o container não está neste
+  host).
+- **A resposta é o resultado tipado, sem texto livre e sem log.** `200` com
+  `{"reiniciou": true}`, ou `{"reiniciou": false, "motivo": "sem_container" |
+  "tempo_esgotado" | "falha_no_exec"}`, ou `{"reiniciou": false, "motivo":
+  "app_saiu", "exitCode": <n>}`. O comando do app pode carregar segredo, então
+  nenhum trecho de log trafega. Reinício que falha continua `200`: a falha é a
+  resposta, não um erro do broker. O limite de tempo (`TIMEOUT_DO_REINICIO_MS`, 30 s)
+  é da porta, e ela responde `tempo_esgotado`.
+- **Os mesmos portões das vizinhas:** token de serviço (401), só `POST` (405),
+  roteador fechado (`/containers/:id/app/restart` é o único caminho com `app`).
+
+- **Onde:** `apps/broker/src/operacoes.ts:268` (`reiniciarApp`),
+  `apps/broker/src/operacoes.ts:281` (`SemComandoDoAppError`),
+  `apps/broker/src/servidor.ts:146` (rota), `apps/broker/src/servidor.ts:209` (despacho)
+- **Teste:** `apps/broker/src/servidor.spec.ts` ("POST /containers/:id/app/restart (RN-1025)")
+- **Decisão arquitetural:** ADR 0264

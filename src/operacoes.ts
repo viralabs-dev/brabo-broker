@@ -1,5 +1,5 @@
 /**
- * As CINCO operações do broker. Não seis.
+ * As SEIS operações do broker (a sexta, `reiniciarApp`, é a RN-1025 / ADR 0264).
  *
  * A porta (`packages/docker-port`) já contém o que se pode PEDIR ao daemon;
  * este arquivo contém o que se pode pedir ao BROKER, e a diferença entre os
@@ -16,7 +16,7 @@
  *
  * Ele recebe `DependenciasDoBroker` e devolve valor ou lança. Quem traduz isso
  * em status e corpo JSON é `servidor.ts`. A separação existe para o teste
- * exercitar as cinco operações sem socket, sem daemon e sem api — os três
+ * exercitar as seis operações sem socket, sem daemon e sem api — os três
  * substituídos por duplos.
  */
 
@@ -33,6 +33,7 @@ import {
   type EstadoObservadoDoContainer,
   type PedidoDeExec,
   type ResultadoDeExec,
+  type ResultadoDoReinicio,
 } from '@brabo/docker-port';
 import type { BuscarContexto, ContextoDoProjeto } from './api-client.ts';
 import type { ConfiguracaoDoBroker } from './config.ts';
@@ -256,6 +257,34 @@ export async function remove(
   projectId: string,
 ): Promise<void> {
   await deps.docker.remove(await nomeDaPasta(deps, projectId));
+}
+
+/**
+ * RN-1025: reinicia SÓ o processo do app, no container que já está de pé. O
+ * `comandoDoApp` vem da `container-spec` da api (a decisão VIGENTE), nunca do
+ * corpo — o corpo desta rota é ignorado. Sem comando vigente não há o que
+ * reiniciar: recusa nomeada (409), em vez de lançar um comando vazio.
+ */
+export async function reiniciarApp(
+  deps: DependenciasDoBroker,
+  projectId: string,
+): Promise<ResultadoDoReinicio> {
+  const contexto = await deps.buscarContexto(projectId);
+  garantirModoSuportado(projectId, contexto);
+  const comando = contexto.comandoDoApp;
+  if (typeof comando !== 'string' || comando.trim().length === 0) {
+    throw new SemComandoDoAppError(projectId);
+  }
+  return deps.docker.reiniciarApp(nomeDeWorkspaceValidado(contexto.workspaceDirName), comando);
+}
+
+export class SemComandoDoAppError extends Error {
+  readonly origem = 'politica';
+
+  constructor(projectId: string) {
+    super(`o projeto ${projectId} não tem comando de app vigente na api: não há o que reiniciar.`);
+    this.name = 'SemComandoDoAppError';
+  }
 }
 
 export async function inspect(

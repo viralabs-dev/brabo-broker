@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@brabo/docker-port':
-        specifier: git+https://github.com/viralabs-dev/brabo-contracts.git#v1.0.0&path:/packages/docker-port
-        version: https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/0513a15fd257456e031e995f8a32046bd9e31b2e#path:/packages/docker-port
+        specifier: git+https://github.com/viralabs-dev/brabo-contracts.git#v1.2.0-dev.1&path:/packages/docker-port
+        version: https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f#path:/packages/docker-port
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.3
@@ -29,8 +29,8 @@ importers:
 
 packages:
 
-  '@brabo/docker-port@https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/0513a15fd257456e031e995f8a32046bd9e31b2e#path:/packages/docker-port':
-    resolution: {gitHosted: true, path: /packages/docker-port, tarball: https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/0513a15fd257456e031e995f8a32046bd9e31b2e}
+  '@brabo/docker-port@https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f#path:/packages/docker-port':
+    resolution: {gitHosted: true, path: /packages/docker-port, tarball: https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f}
     version: 0.0.1
 
   '@esbuild/aix-ppc64@0.28.1':
@@ -1067,7 +1067,7 @@ packages:
 
 snapshots:
 
-  '@brabo/docker-port@https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/0513a15fd257456e031e995f8a32046bd9e31b2e#path:/packages/docker-port': {}
+  '@brabo/docker-port@https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f#path:/packages/docker-port': {}
 
   '@esbuild/aix-ppc64@0.28.1':
     optional: true

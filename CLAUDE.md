@@ -56,6 +56,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   archived".
 - PR do Dependabot entra pela `dev`, nunca direto na `main`; na `dev` ele não espera aprovação humana (ADR 0236) e a `main` segue com a escada inteira. Dependência de linguagem só por segurança (`open-pull-requests-limit: 0`), `github-actions` e `docker` semanais, `target-branch: dev`. O `dependabot-para-dev.yml` do `brabo-ci` fecha ou redireciona o PR de segurança que o GitHub abre contra a `main`.
 - Merge em branch protegida (`dev`/`main`) é SEMPRE manual do usuário, sem opção de automatizar. A política de PR, escada, promoção e carimbo de tag vem dos workflows reutilizáveis do `brabo-ci`, fixados por SHA com `# vX` no `uses:`. Imagem de terceiro por digest com a tag inline. Segredo nunca é impresso; teste nunca roda contra o Postgres da instalação.
+- Ref de doc quebrada reprova no próprio PR: o check `refs` (reutilizável `refs-com-simbolo` do `brabo-ci`, não obrigatório) confere cada `caminho:N` (`símbolo`) das RNs, e o artefato `refs-patch` traz a reancoragem (`gh run download <id> -n refs-patch && git apply refs.patch`) (AT-782).
 
 ## Convenções (repositório, dados e domínio)
 - Volume nomeado do Docker nasce com o dono do caminho que existir NA IMAGEM;
@@ -85,7 +86,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   `docker/broker/`, e o binário `docker` DENTRO da imagem (`docker-cli`, só o
   cliente) — preço declarado da decisão de usar um mecanismo só dos dois lados.
   **Ele não aceita especificação de container**: recebe um `projectId` e uma
-  das cinco operações da `DockerPort`, vai à api LER a decisão do Arquiteto
+  das seis operações da `DockerPort`, vai à api LER a decisão do Arquiteto
   (`GET /internal/projects/:projectId/container-spec`) e COMPÕE imagem, rede,
   recursos e o único mount. Não existe campo em que se escreva `privileged`,
   `cap_add`, `network: host` ou um `-v` livre — se a spec viajasse no corpo, a
@@ -141,7 +142,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   `portas` (só `-p 127.0.0.1:H:C`), `dns` e `hostsExtras` são validados em
   `spec-de-container.ts`. O papel `qa` (`spec.qa`) é a instância efêmera
   `brabo-qa-<workspace>-<chave>`, sem `--restart`, e `stop`/`remove`/`inspect`/
-  `exec` aceitam `alvo: { papel: 'qa', chave }` (a porta segue com CINCO
+  `exec` aceitam `alvo: { papel: 'qa', chave }` (a porta segue com SEIS
   operações; só `brabo.papel=qa` é alcançado). Rotas novas do broker, no
   roteador fechado: `/containers/:projectId/qa/:chave/{start,remove,exec}` —
   tudo o mais segue 404. Contrato api -> broker: campos `comandoDoApp`, `ports`
@@ -266,7 +267,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   tipo novo, exclusivo desse modo
 
 ## Documentação é parte da definição de pronto (permanente)
-- A doc deste repo mora em `docs/` (fonte pt-BR; `en`, `ru` e `zh-Hans` em `docs/i18n/`). Ao alterar código, atualize a doc da área NA MESMA mudança e mostre o diff dela junto com o do código. Não pergunte se deve: faça. NUNCA crie `website/docs/`: o site é agregado pelo `brabo`, que lê a `docs/` de cada repositório.
+- A doc deste repo mora em `docs/` e é em pt-BR, sem `docs/i18n/` (decisão do dono, 06/11/2026, ADR 0266, que reverte a ADR 0260 e a AT-745). Ao alterar código, atualize a doc da área NA MESMA mudança e mostre o diff dela junto com o do código. Não pergunte se deve: faça. NUNCA crie `website/docs/`: o site é agregado pelo `brabo`, que lê a `docs/` de cada repositório.
 - Mudança de comportamento observável → entrada em `CHANGELOG.md` (Unreleased). Versão própria a partir da 1.0.0, e toda tag nasce de workflow (nunca versionar à mão).
 - Regra de negócio nova → RN-XXX com `caminho:N` (`símbolo`) e o teste que a cobre, na `docs/business-rules*` deste repo; a numeração é UMA só no produto (nunca reinicie), a âncora `{#rn-NNN}` é o contrato e não muda quando a RN muda de arquivo. Aloque o número varrendo as branches locais e o remoto (colide com frente paralela).
 - Mudança estrutural (fronteira de camada, banco, modelo de consistência, dependência pesada) → ADR novo com o próximo número; ADR aceito NUNCA é editado (o novo o referencia). Os ADRs moram no repo `brabo` (a porta de entrada do produto).
