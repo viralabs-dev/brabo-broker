@@ -2,3 +2,7 @@
 # binário da plataforma, e é o que o pnpm 11 exige aprovar explicitamente.
 allowBuilds:
   esbuild: true
+# Pacote da própria org (brabo-contracts, AT-770): a versão nova é consumida na hora, sem esperar a
+# carência de 1 dia do pnpm 11 que vale para pacote de terceiros.
+minimumReleaseAgeExclude:
+  - '@viralabs-dev/brabo-docker-port'

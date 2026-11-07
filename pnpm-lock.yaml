@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@brabo/docker-port':
-        specifier: git+https://github.com/viralabs-dev/brabo-contracts.git#v1.2.0-dev.1&path:/packages/docker-port
-        version: https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f#path:/packages/docker-port
+        specifier: npm:@viralabs-dev/brabo-docker-port@1.2.0
+        version: '@viralabs-dev/brabo-docker-port@1.2.0'
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.3
@@ -28,10 +28,6 @@ importers:
         version: 4.1.12(@types/node@24.13.3)(vite@8.3.5(@types/node@24.13.3)(esbuild@0.28.1))
 
 packages:
-
-  '@brabo/docker-port@https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f#path:/packages/docker-port':
-    resolution: {gitHosted: true, path: /packages/docker-port, tarball: https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f}
-    version: 0.0.1
 
   '@esbuild/aix-ppc64@0.28.1':
     resolution: {integrity: sha512-Svl7tq8k/08+p6CXPpRjQ1fKX+1odH/BQbb48fV6fj3CWHhsoIOoY87w1oHXm0qEpkIK3ZfVgp0hed3XBXzXMQ==}
@@ -586,6 +582,9 @@ packages:
   '@types/node@24.13.3':
     resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
 
+  '@viralabs-dev/brabo-docker-port@1.2.0':
+    resolution: {integrity: sha512-JO+oXHnMW3qgX9frf3k3ieflxO7wc+LdZglBVhHXX4mTK22aXFATbar1rA/AsVE8wzRi7bT4E5B4lWnZ9XPPrA==, tarball: https://npm.pkg.github.com/download/@viralabs-dev/brabo-docker-port/1.2.0/b31df8634858ba43abe98cdbaf86c74cf268e4f8}
+
   '@vitest/expect@4.1.12':
     resolution: {integrity: sha512-vFlTt+YEu9WBpNjdGayNmlMVzrWPi1+sv853/7t2FU7hpO5gAFBKHzQmkCq5Xjpr+evegF2994LQT3hF3mRlqQ==}
 
@@ -1067,8 +1066,6 @@ packages:
 
 snapshots:
 
-  '@brabo/docker-port@https://codeload.github.com/viralabs-dev/brabo-contracts/tar.gz/fafff6c7f3874d796ef99a9bd93eb6435bd0f64f#path:/packages/docker-port': {}
-
   '@esbuild/aix-ppc64@0.28.1':
     optional: true
 
@@ -1359,6 +1356,8 @@ snapshots:
   '@types/node@24.13.3':
     dependencies:
       undici-types: 7.18.2
+
+  '@viralabs-dev/brabo-docker-port@1.2.0': {}
 
   '@vitest/expect@4.1.12':
     dependencies:
