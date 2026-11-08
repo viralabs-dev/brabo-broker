@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- CI (AT-848): todos os `uses:` e `ci_ref` repinam em `6390ef5` (`v1.4.0-dev.17`, brabo-ci#53), que aceita a prova `{arquivo, trecho}` do `mapa-dos-repos.ts`.
 - Docs: o `README.md` segue o esqueleto de 8 seções do `brabo-ci` (AT-826, `README.modelo.md`), com o bloco "Onde se encaixa" gerado do `repos.yml` do `brabo`. "Dependências", "Imagens" e "Origem" descem para `docs/dependencias-e-imagens.md`. Os checks `readme-esqueleto` e `mapa-alinhado` entram pelos reutilizáveis do `brabo-ci` em `b5df60b` (`v1.4.0-dev.14`), informativos.
 
 - CI: o check `Dependências de merge` (AT-787) entra pelo `dependencias.yml`, que chama o reutilizável `dependencias-de-merge.yml` do `brabo-ci` pinado em `c6d9394` (`v1.4.0-dev.10`). A PR declara `Depende-de: viralabs-dev/<repo>#<n>` no corpo e o check fica amarelo (`esperando …`) até cada PR citada estar mergeada. Sem linha `Depende-de` o check fica verde ("Sem dependências declaradas"). Não é exigido por ruleset ainda.
