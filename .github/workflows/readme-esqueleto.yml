@@ -1,0 +1,15 @@
+name: readme-esqueleto
+
+# Confere o README no esqueleto de 8 seções do brabo-ci (AT-826). Reutilizável do brabo-ci; NÃO é check obrigatório.
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  readme-esqueleto:
+    uses: viralabs-dev/brabo-ci/.github/workflows/readme-esqueleto.yml@b5df60b6e114827dd3a59889d6a4b0ecda730ecc  # v1.4.0-dev.14
+    with:
+      ci_ref: b5df60b6e114827dd3a59889d6a4b0ecda730ecc  # v1.4.0-dev.14
