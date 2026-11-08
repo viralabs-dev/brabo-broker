@@ -11,6 +11,6 @@ permissions:
 
 jobs:
   contracts-alinhado:
-    uses: viralabs-dev/brabo-ci/.github/workflows/contracts-alinhado.yml@4976af2cd947966df43bbbcae5c3c80f91ac2310  # brabo-ci dev, R1 da AT-770
+    uses: viralabs-dev/brabo-ci/.github/workflows/contracts-alinhado.yml@0a9eba831fb82b9a20a5ad03bc2273a3ede69796  # v1.4.0-dev.5
     with:
-      ci_ref: 4976af2cd947966df43bbbcae5c3c80f91ac2310  # brabo-ci dev, R1 da AT-770
+      ci_ref: 0a9eba831fb82b9a20a5ad03bc2273a3ede69796  # v1.4.0-dev.5
