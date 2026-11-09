@@ -1,0 +1,15 @@
+name: mapa-alinhado
+
+# Confere o bloco "Onde se encaixa" do README contra o repos.yml do brabo (AT-825). Reutilizável do brabo-ci; NÃO é check obrigatório.
+on:
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  mapa-alinhado:
+    uses: viralabs-dev/brabo-ci/.github/workflows/mapa-alinhado.yml@53200467cadc73c5c23b90545474d4948764932f  # v1.4.0
+    with:
+      ci_ref: 53200467cadc73c5c23b90545474d4948764932f  # v1.4.0

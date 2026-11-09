@@ -6,7 +6,7 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
 
 ## Stack (decidida — não proponha alternativas)
 - `brabo-broker`: Node/TS, o único processo do produto com o socket do Docker (ADR 0130), imagem própria (ADR 0162).
-- Contratos: `@brabo/docker-port` vem do `brabo-contracts` por TAG (fonte TypeScript, bundle embutido pelo `tsup`).
+- Contratos: `@brabo/docker-port` é o pacote `@viralabs-dev/brabo-docker-port` do GitHub Packages (alias do pnpm, versão exata, AT-770), bundle embutido pelo `tsup`. O token do registry só entra como secret do BuildKit (`--mount=type=secret,id=npmrc`), nunca em `ARG`/`ENV`/camada (RN-1039). O `.npmrc` do repo não tem token; suba a versão com `brabo-ci:scripts/ci/subir-contracts.sh`.
 
 ## Repositório, branches e PR (vale para todo repo `brabo-*`)
 - Branches permanentes: dev, main — um branch, um ambiente; a esteira é
@@ -153,10 +153,9 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   depois da imagem, RN-941; o serviço próprio se chama `<instância>-<serviço>`).
 - `brabo-contracts:packages/docker-port`: a porta de Docker e o adaptador de CLI, consumidos
   por `brabo-runner` e este repo. Runtime, e por isso NÃO cabe em
-  `brabo-contracts:packages/shared` (100% tipo, invariante travado por teste). Sem passo de
-  build: os dois consumidores o EMPACOTAM (`tsup`, `bun build --compile`), e é
-  por isso que a api não pode consumi-lo — `pnpm deploy` copia o pacote de
-  verdade e o Node recusa type stripping dentro de `node_modules`
+  `brabo-contracts:packages/shared` (100% tipo, invariante travado por teste). Publicado
+  compilado (`dist`); os dois consumidores o EMPACOTAM (`tsup`, `bun build --compile`), e a api
+  não pode consumi-lo: só o broker fala com o socket do Docker
 - FASE 25b DEIXOU de ser corte no compose LOCAL (RN-512, ADR 0146 ponto 3): o
   broker sai do `profiles` ali e sobe com `pnpm dev`, e permanece sob
   `profiles: ["container-broker"]` só em PRODUÇÃO — os dois composes divergem

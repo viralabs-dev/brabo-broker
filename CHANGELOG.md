@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- CI: repina o brabo-ci na release final `v1.4.0` (`5320046`), para a promoção `dev → main` de 09/11/2026 (a `main` só aceita release final).
+
+- Doc (AT-868): os 2 links das páginas de RN que apontavam para docs de outro repo (`../adr/…`, `api.md`) viram URL do arquivo no GitHub do repo dono, na `dev`. No site continuam relativos.
+- Docs (AT-873): a tabela "Onde se encaixa" do README linka cada repo no GitHub (o do próprio README fica sem link), gerada pelo `mapa-dos-repos.ts` do brabo-ci repinado em `a571e82` (`v1.4.0-dev.28`, ci#63).
+
+- Docs (AT-867): a linha de badges logo abaixo do título mostra o CI da `dev` e o da `main`, a versão da `dev` (última tag `-dev`), licença MIT, documentação e Ko-fi, no estilo do `brabo`.
+
+- Doc (AT-848): o bloco "Onde se encaixa" do README é regenerado do `repos.yml` do brabo com o formato `{arquivo, trecho}` e a aresta `brabo → brabo-contracts` (brabo#84); o check `mapa-alinhado` volta a passar.
+- CI (AT-848): todos os `uses:` e `ci_ref` repinam em `6390ef5` (`v1.4.0-dev.17`, brabo-ci#53), que aceita a prova `{arquivo, trecho}` do `mapa-dos-repos.ts`.
+- Docs: o `README.md` segue o esqueleto de 8 seções do `brabo-ci` (AT-826, `README.modelo.md`), com o bloco "Onde se encaixa" gerado do `repos.yml` do `brabo`. "Dependências", "Imagens" e "Origem" descem para `docs/dependencias-e-imagens.md`. Os checks `readme-esqueleto` e `mapa-alinhado` entram pelos reutilizáveis do `brabo-ci` em `b5df60b` (`v1.4.0-dev.14`), informativos.
+
+- CI: o check `Dependências de merge` (AT-787) entra pelo `dependencias.yml`, que chama o reutilizável `dependencias-de-merge.yml` do `brabo-ci` pinado em `c6d9394` (`v1.4.0-dev.10`). A PR declara `Depende-de: viralabs-dev/<repo>#<n>` no corpo e o check fica amarelo (`esperando …`) até cada PR citada estar mergeada. Sem linha `Depende-de` o check fica verde ("Sem dependências declaradas"). Não é exigido por ruleset ainda.
+
+- CI: o `ci.yml` chama o reutilizável `cadeia.yml` do `brabo-ci` (actionlint e pins, `ci_ref` obrigatório, AT-819) e repina todos os `uses:`, actions `vinculos` e `ci_ref` em `0a9eba8` (`v1.4.0-dev.5`, brabo-ci#39), com o comentário de versão no formato `vX.Y.Z-dev.N`.
+- Dependência: o `@brabo/docker-port` passa a vir do GitHub Packages (`@viralabs-dev/brabo-docker-port@1.2.0`, alias do pnpm), no lugar da dependência git por tag (AT-770). `.npmrc` novo (só o registry do escopo, sem token); lock trocado só nas entradas do contracts; `minimumReleaseAgeExclude` do pacote da org. `Dockerfile` e `Dockerfile.dev` instalam com `--mount=type=secret,id=npmrc` e perdem o `git`; `ci.yml` (`packages: read`, `setup-node` com escopo, secret do BuildKit) e `release.yml` (`secret-files`). Novo check `contracts-alinhado.yml` (pin no `brabo-ci` `4976af2`) e RN-1039 com spec (`src/token-do-registry.spec.ts`).
 - CI: o regressivo do brabo-qa roda em toda PR para a `dev` (AT-769): o job `imagem-hotfix` do `ci.yml` publica a `sha-<12>` assinada também com `base_ref == 'dev'` (mesma guarda de fork, sem Dependabot); o `limpeza-ghcr.yml` apaga toda `sha-*` de PR fechada e as de mais de 7 dias (eram 14); o `qa-e2e.yml` passa a `branches: [dev, main]` (PR para a `dev` = `Regressivo do brabo-qa`, nunca exigido; PR para a `main` segue com o `E2E do brabo-qa`). CLAUDE.md e `.claude/agents/analista.md` ganham a regra do card.
 - CI: o run do `release.yml` ganha `run-name` com a origem e o passo `Vínculos` (helper do `brabo-ci`, origem pela linha `Carimbo:` da tag; AT-773, RN-1044).
 
