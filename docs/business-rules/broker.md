@@ -12,8 +12,8 @@ keywords: [regras de negócio, broker]
 
 ### RN-494 — O portão da imagem (RN-105) vale nos TRÊS modos de execução {#rn-494}
 
-**REVISA a [RN-169](api.md#rn-169) (item 1) e a
-[RN-421](api.md#rn-421)**: a dispensa do portão RN-105 para projeto `mounted`/
+**REVISA a [RN-169](https://github.com/viralabs-dev/brabo-api/blob/dev/docs/business-rules/api.md#rn-169) (item 1) e a
+[RN-421](https://github.com/viralabs-dev/brabo-api/blob/dev/docs/business-rules/api.md#rn-421)**: a dispensa do portão RN-105 para projeto `mounted`/
 `runner` — "esses modos não sobem container próprio, então a decisão do
 Arquiteto nunca vai acontecer" — está REVOGADA. `ReadProjectCodeUseCase
 .portaoDoContainer` deixa de checar `executionMode`: os TRÊS modos agora
