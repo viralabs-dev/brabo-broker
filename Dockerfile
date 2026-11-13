@@ -64,7 +64,7 @@ ENV NODE_ENV=production \
 # de sistema deste serviço, e ela é o preço declarado da decisão do ADR 0128 de
 # usar um mecanismo só dos dois lados. `wget` (busybox) já vem na base e é o
 # que o HEALTHCHECK usa.
-RUN apk upgrade --no-cache && apk add --no-cache docker-cli
+RUN apk upgrade --no-cache && apk add --no-cache docker-cli docker-cli-compose
 
 # Remove npm/npx/corepack, pelo mesmo motivo da imagem da api: o runtime executa
 # `node index.cjs`, e gerenciador de pacote aqui é superfície pronta para quem

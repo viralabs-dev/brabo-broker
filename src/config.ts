@@ -60,6 +60,14 @@ export interface ConfiguracaoDoBroker {
    * `start` de projeto `mounted` recusa, nomeando a variável.
    */
   baseDeProjetosNoHost: string | null;
+  /** AT-922: onde a prova de compose grava o override (`BROKER_TRABALHO_DIR`, padrão `/trabalho`, tmpfs). */
+  trabalhoDir: string;
+  /** AT-922: onde ESTE processo enxerga (somente leitura) a pasta gerenciada; `null` = prova indisponível. */
+  raizDeWorkspacesNoBroker: string | null;
+  /** AT-922: idem para a base dos projetos montados. */
+  baseDeProjetosNoBroker: string | null;
+  /** AT-922: imagem do container de sonda (precisa de `wget`; em geral a do próprio broker). */
+  imagemDaSonda: string | null;
 }
 
 export class ConfiguracaoInvalidaError extends Error {
@@ -102,7 +110,16 @@ export function lerConfiguracao(
     apiUrl: (env.API_URL ?? 'http://api:3000').replace(/\/+$/, ''),
     raizDeWorkspacesNoHost: raiz.length > 0 ? raiz : null,
     baseDeProjetosNoHost: base.length > 0 ? base : null,
+    trabalhoDir: (env.BROKER_TRABALHO_DIR ?? '').trim() || '/trabalho',
+    raizDeWorkspacesNoBroker: opcional(env.PROJECT_WORKSPACES_BROKER_ROOT),
+    baseDeProjetosNoBroker: opcional(env.BRABO_PROJECTS_BROKER_BASE),
+    imagemDaSonda: opcional(env.BRABO_PROVA_SONDA_IMAGE),
   };
+}
+
+function opcional(v: string | undefined): string | null {
+  const t = (v ?? '').trim();
+  return t.length > 0 ? t : null;
 }
 
 function tokenDeProducao(bruto: string): string {

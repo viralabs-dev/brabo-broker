@@ -146,7 +146,11 @@ Broker de container: o ÚNICO processo do produto com o socket do Docker do serv
   `exec` aceitam `alvo: { papel: 'qa', chave }` (a porta segue com SEIS
   operações; só `brabo.papel=qa` é alcançado). Rotas novas do broker, no
   roteador fechado: `/containers/:projectId/qa/:chave/{start,remove,exec}` —
-  tudo o mais segue 404. Contrato api -> broker: campos `comandoDoApp`, `ports`
+  tudo o mais segue 404. O ADR 0297 (AT-922) acrescenta UMA rota à lista fechada,
+  `POST /containers/:projectId/qa/:chave/compose` (a prova de compose, RN-1326/1327,
+  `src/prova-de-compose.ts`): a frase "seis rotas/operações" acima vale para o ciclo
+  do container; a prova é a rota sétima, de QA, com porta própria (`ProvaDeComposePort`)
+  e sem corpo. Contrato api -> broker: campos `comandoDoApp`, `ports`
   (`host`, `container`, `protocol`), `dns`, `extraHosts` (`name`, `ip`) e, com
   `?papel=qa&task=<chave>`, `qa: { chave, services: [{ name, image, env?, tmpfs?,
   user?, command?, shared? }] }` (`user` = `<uid>:<gid>` nunca 0, `command` = argv

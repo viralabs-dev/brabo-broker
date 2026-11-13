@@ -43,6 +43,7 @@ import {
   ProjetoDesconhecidoError,
 } from './api-client.ts';
 import { tokenConfere } from './config.ts';
+import { ProvaDeComposeEmAndamentoError, ProvaDeComposeIndisponivelError } from './prova-de-compose.ts';
 import {
   BaseDeProjetosNaoConfiguradaError,
   ComandoInvalidoError,
@@ -51,6 +52,7 @@ import {
   execQa,
   inspect,
   LocalizacaoIndisponivelError,
+  provaDeComposeQa,
   ModoDeExecucaoNaoSuportadoError,
   RaizDeWorkspacesNaoConfiguradaError,
   reiniciarApp,
@@ -147,7 +149,7 @@ export function rotaDeContainer(caminho: string): RotaDeContainer | null {
   if (partes.length === 4 && partes[2] === 'app' && partes[3] === 'restart') {
     return { projectId, operacao: 'app/restart' };
   }
-  // ADR 0229: `/containers/:id/qa/:chave/<start|remove|exec>` — fechado, chave de 8.
+  // ADR 0229: `/containers/:id/qa/:chave/<start|remove|exec|compose>` — fechado, chave de 8.
   const chave = partes[3];
   const op = partes[4];
   if (
@@ -155,7 +157,7 @@ export function rotaDeContainer(caminho: string): RotaDeContainer | null {
     partes[2] === 'qa' &&
     chave !== undefined &&
     /^[a-z0-9]{8}$/.test(chave) &&
-    (op === 'start' || op === 'remove' || op === 'exec')
+    (op === 'start' || op === 'remove' || op === 'exec' || op === 'compose')
   ) {
     return { projectId, operacao: op, qaChave: chave };
   }
@@ -187,6 +189,9 @@ async function despachar(
       case 'remove':
         await removeQa(deps, projectId, qaChave);
         return { status: 200, corpo: { removido: true } };
+      case 'compose':
+        // ADR 0297: o corpo é descartado; nada do compose atravessa a rede.
+        return { status: 200, corpo: await provaDeComposeQa(deps, projectId, qaChave) };
       default:
         return {
           status: 200,
@@ -233,6 +238,12 @@ export function respostaDeErro(erro: unknown): RespostaDoBroker {
     // 503: o serviço existe, a dependência dele não respondeu. Reiniciar o
     // broker não conserta nenhum dos dois, e o corpo diz o que conserta.
     return { status: 503, corpo: corpo(erro, 'infra') };
+  }
+  if (erro instanceof ProvaDeComposeIndisponivelError) {
+    return { status: 503, corpo: corpo(erro, 'infra') };
+  }
+  if (erro instanceof ProvaDeComposeEmAndamentoError) {
+    return { status: 409, corpo: corpo(erro, 'politica') };
   }
   if (erro instanceof ApiIndisponivelError) {
     return { status: 502, corpo: corpo(erro, 'infra') };

@@ -132,3 +132,34 @@ AT-770), e o registry exige token até para pacote público. O token só existe 
 - **Onde:** `Dockerfile`, `Dockerfile.dev`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`
 - **Teste:** `src/token-do-registry.spec.ts:23` (`describe`)
 - **Decisão arquitetural:** ADR 0270
+
+## A prova de compose do QA (RN-1326, RN-1327)
+
+### RN-1326 — O broker só roda o compose do projeto depois da allowlist, e nunca como está {#rn-1326}
+
+`POST /containers/:id/qa/:chave/compose` (sem corpo; o caminho vem da `localizacao` da api) lê o clone limpo
+`<raiz>/<segmento>/.brabo-qa/clone-limpo`, somente leitura. Antes de qualquer `up`: `include`, `extends` e `env_file`
+fora do contexto são recusados no TEXTO cru (o `config` os resolveria ou leria, ex. `/proc/self/environ`); o JSON de
+`docker compose config` passa pela allowlist (`build` com contexto dentro do clone, `image`, `environment`, `ports` só em
+`127.0.0.1`, `depends_on`, `healthcheck`, `command` e poucos mais). `privileged`, `cap_add`, `network_mode`, `pid`, `ipc`,
+`devices`, `extra_hosts`, volume de host e porta fora de `127.0.0.1` voltam em `recusas` com o nome do campo; qualquer outra
+chave volta como `<serviço>.<campo>`. Recusado, nada sobe (`subiu: false`, origem `projeto`). O `docker` roda com ambiente
+limpo (sem `BRABO_SERVICE_TOKEN`, que o compose interpolaria). Sem plugin, sem clone, sem raiz visível ou sem imagem de
+sonda: `503` origem `infra` ("sem prova de compose").
+
+- **Onde:** `src/prova-de-compose.ts:118` (`recusasDoTexto`), `src/prova-de-compose.ts:136` (`recusasDoConfig`), `src/operacoes.ts:235` (`provaDeComposeQa`)
+- **Teste:** `src/prova-de-compose.spec.ts` ("allowlist (cada campo recusado pelo nome)")
+- **Decisão arquitetural:** ADR 0297
+
+### RN-1327 — A prova limpa sempre, tem teto de 10 min e 4 GiB e é uma por projeto {#rn-1327}
+
+Um override gerado pelo broker dá a cada serviço `mem_limit`, `cpus`, `pids_limit` e `no-new-privileges` (e `cap_drop: [ALL]`
+nos serviços com `build`; banco só de imagem mantém as capacidades padrão). `up --build --wait` e as sondas de `/docs` e
+`/openapi.json` (container `wget` na rede do projeto, até 5 tentativas) dividem os 10 minutos; estourou o tempo, ou as imagens
+somam mais de 4 GiB depois do build, o resultado é origem `infra`. Em qualquer saída (sucesso, recusa, falha, exceção, teto)
+roda `down -v --rmi local --remove-orphans` e `builder prune`; falha de limpeza é logada. Segunda prova do mesmo projeto
+enquanto há uma viva: `409`. O teto de disco é conferido depois do build, não imposto durante.
+
+- **Onde:** `src/prova-de-compose.ts:291` (`provaDeCompose`)
+- **Teste:** `src/prova-de-compose.spec.ts` ("prova de compose (Docker dublê)")
+- **Decisão arquitetural:** ADR 0297
