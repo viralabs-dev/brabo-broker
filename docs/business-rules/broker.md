@@ -109,8 +109,8 @@ então os comandos `exec` das lanes em andamento não são tocados.
 - **Os mesmos portões das vizinhas:** token de serviço (401), só `POST` (405),
   roteador fechado (`/containers/:id/app/restart` é o único caminho com `app`).
 
-- **Onde:** `apps/broker/src/operacoes.ts:268` (`reiniciarApp`),
-  `apps/broker/src/operacoes.ts:281` (`SemComandoDoAppError`),
+- **Onde:** `apps/broker/src/operacoes.ts:303` (`reiniciarApp`),
+  `apps/broker/src/operacoes.ts:311` (`SemComandoDoAppError`),
   `apps/broker/src/servidor.ts:146` (rota), `apps/broker/src/servidor.ts:209` (despacho)
 - **Teste:** `apps/broker/src/servidor.spec.ts` ("POST /containers/:id/app/restart (RN-1025)")
 - **Decisão arquitetural:** ADR 0264
