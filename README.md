@@ -9,7 +9,8 @@ O único processo do Brabo que fala com o daemon Docker do servidor.
 O broker não aceita especificação de container. Recebe um `projectId` e uma das seis operações
 do `DockerPort` (`start`, `stop`, `remove`, `inspect`, `exec` e `app/restart`, RN-1025), lê a
 decisão do Arquiteto na api e compõe a especificação ele mesmo. Não publica porta: só a api
-chega nele. O socket do Docker dá controle do host, por isso fica num processo só (ADR 0130).
+chega nele. Há ainda uma rota de QA, `POST /containers/:id/qa/:chave/compose`, que prova o `docker compose` do clone limpo
+num projeto descartável (ADR 0297, RN-1326). O socket do Docker dá controle do host, por isso fica num processo só (ADR 0130).
 
 ## Onde se encaixa
 

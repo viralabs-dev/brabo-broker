@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `@brabo/docker-port` sobe de `1.3.0-dev.1` para a final `1.3.0`, para a promoção `dev → main` de 13/11/2026 (a `main` consome artefato final do contracts, ADR 0284).
+- Prova de compose (AT-922, ADR 0297, RN-1326/1327): `POST /containers/:id/qa/:chave/compose` valida o compose do clone limpo por allowlist (recusa nomeada por campo), força limites e override, roda `docker compose up --build --wait` num projeto descartável `brabo-qa-compose-<workspace>-<chave>`, sonda `/docs` e `/openapi.json` por dentro da rede e limpa SEMPRE (`down -v --rmi local --remove-orphans` e `builder prune`), com teto de 10 min e 4 GiB e uma prova por projeto. Imagem ganha `docker-cli-compose`; novas variáveis `BROKER_TRABALHO_DIR` (padrão `/trabalho`), `PROJECT_WORKSPACES_BROKER_ROOT`, `BRABO_PROJECTS_BROKER_BASE` e `BRABO_PROVA_SONDA_IMAGE`. `@brabo/docker-port` sobe para `1.3.0-dev.1`.
+
 - CI: repina o brabo-ci na release final `v1.4.0` (`5320046`), para a promoção `dev → main` de 09/11/2026 (a `main` só aceita release final).
 
 - Doc (AT-868): os 2 links das páginas de RN que apontavam para docs de outro repo (`../adr/…`, `api.md`) viram URL do arquivo no GitHub do repo dono, na `dev`. No site continuam relativos.

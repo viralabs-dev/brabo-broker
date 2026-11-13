@@ -32,16 +32,25 @@ import {
   type EspecificacaoDeContainer,
   type EstadoObservadoDoContainer,
   type PedidoDeExec,
+  type ResultadoDaProvaDeCompose,
   type ResultadoDeExec,
   type ResultadoDoReinicio,
 } from '@brabo/docker-port';
 import type { BuscarContexto, ContextoDoProjeto } from './api-client.ts';
 import type { ConfiguracaoDoBroker } from './config.ts';
+import {
+  caminhoDoClone,
+  executorPadrao,
+  provaDeCompose,
+  type ExecutorDeDocker,
+} from './prova-de-compose.ts';
 
 export interface DependenciasDoBroker {
   docker: DockerPort;
   buscarContexto: BuscarContexto;
   config: ConfiguracaoDoBroker;
+  /** AT-922: o processo `docker` da prova de compose (duplo nos testes). */
+  executorDeDocker?: ExecutorDeDocker;
 }
 
 /**
@@ -217,6 +226,32 @@ export async function startQa(
 ): Promise<ContainerIniciado> {
   const spec = await especificacaoDoProjeto(deps, projectId, chave);
   return deps.docker.start(spec);
+}
+
+/**
+ * AT-922 / ADR 0297: prova o compose do clone limpo num projeto descartável.
+ * O corpo do pedido é ignorado: o caminho vem da `localizacao` da api.
+ */
+export async function provaDeComposeQa(
+  deps: DependenciasDoBroker,
+  projectId: string,
+  chave: string,
+): Promise<ResultadoDaProvaDeCompose> {
+  const alvo = alvoDeQa(chave);
+  const contexto = await deps.buscarContexto(projectId);
+  garantirModoSuportado(projectId, contexto);
+  const nome = nomeDeWorkspaceValidado(contexto.workspaceDirName);
+  const loc = contexto.localizacao;
+  if (loc === null || loc === undefined || loc.tipo === 'indisponivel') {
+    throw new LocalizacaoIndisponivelError(projectId, loc?.motivo ?? 'a api não mandou `localizacao`');
+  }
+  const clone = caminhoDoClone(deps.config, loc.tipo, segmentoDeProjetoValidado(loc.segmento));
+  return provaDeCompose(
+    { config: deps.config, docker: deps.executorDeDocker ?? executorPadrao() },
+    nome,
+    alvo.chave,
+    clone,
+  );
 }
 
 export async function removeQa(
