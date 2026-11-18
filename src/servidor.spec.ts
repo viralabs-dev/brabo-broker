@@ -8,12 +8,18 @@ import {
   type EspecificacaoDeContainer,
   type EstadoObservadoDoContainer,
   type PedidoDeExec,
+  type RecursosDoHost,
+  type RemovidosPorProjeto,
   type ResultadoDoReinicio,
   type ResultadoDeExec,
 } from '@brabo/docker-port';
 import { tratar, rotaDeContainer } from './servidor.ts';
 import { lerConfiguracao } from './config.ts';
-import type { ContextoDoProjeto } from './api-client.ts';
+import {
+  ApiIndisponivelError,
+  ProjetoDesconhecidoError,
+  type ContextoDoProjeto,
+} from './api-client.ts';
 import type { DependenciasDoBroker } from './operacoes.ts';
 
 /**
@@ -43,6 +49,12 @@ const CONTEXTO: ContextoDoProjeto = {
   imagemVersao: 3,
 };
 
+const RECURSOS: RecursosDoHost = {
+  portas: [{ host: 13000, ip: '0.0.0.0', protocolo: 'tcp', projectId: null }],
+  containers: [{ projectId: 'p9', papel: 'trabalho', estado: 'running', nome: 'brabo-p9' }],
+  redes: [{ projectId: 'p9', nome: 'brabo-qa-p9' }],
+};
+
 class DockerDeTeste extends DockerPort {
   readonly chamadas: Array<{ operacao: string; argumento: unknown }> = [];
   observado: EstadoObservadoDoContainer | null = null;
@@ -52,7 +64,7 @@ class DockerDeTeste extends DockerPort {
   async start(spec: EspecificacaoDeContainer): Promise<ContainerIniciado> {
     this.chamadas.push({ operacao: 'start', argumento: spec });
     if (this.erroAoIniciar !== null) throw this.erroAoIniciar;
-    return { containerId: 'c0ffee', nome: `brabo-${spec.workspaceDirName}`, jaEstavaDePe: false };
+    return { containerId: 'c0ffee', nome: `brabo-${spec.workspaceDirName}`, jaEstavaDePe: false, recriado: false };
   }
   async stop(nome: string): Promise<void> {
     this.chamadas.push({ operacao: 'stop', argumento: nome });
@@ -67,6 +79,13 @@ class DockerDeTeste extends DockerPort {
   async reiniciarApp(nome: string, comandoDoApp: string): Promise<ResultadoDoReinicio> {
     this.chamadas.push({ operacao: 'reiniciarApp', argumento: { nome, comandoDoApp } });
     return this.resultadoDoReinicio;
+  }
+  async recursosDoHost(): Promise<RecursosDoHost> {
+    return RECURSOS;
+  }
+  async removerPorProjeto(projectId: string): Promise<RemovidosPorProjeto> {
+    this.chamadas.push({ operacao: 'removerPorProjeto', argumento: projectId });
+    return { containers: ['brabo-x'], redes: [] };
   }
   async exec(nome: string, pedido: PedidoDeExec): Promise<ResultadoDeExec> {
     this.chamadas.push({ operacao: 'exec', argumento: { nome, pedido } });
@@ -215,7 +234,7 @@ describe('a especificação é COMPUTADA, nunca recebida', () => {
   });
 });
 
-describe('as seis operações, e nada além', () => {
+describe('as oito operações, e nada além', () => {
   it('stop/remove/inspect trabalham pelo NOME derivado, sem pedir imagem', async () => {
     const { deps, docker } = montar({ contexto: { imagem: null, imagemVersao: 0 } });
 
@@ -244,13 +263,13 @@ describe('as seis operações, e nada além', () => {
     expect(docker.chamadas).toHaveLength(0);
   });
 
-  it('uma sétima operação não existe — 404 que diz quais são as seis', async () => {
+  it('uma nona operação não existe — 404 que diz quais são as oito', async () => {
     const { deps, docker } = montar();
 
     const r = await tratar(deps, pedido('POST', '/containers/p/run', { imagem: 'x:1' }));
 
     expect(r.status).toBe(404);
-    expect(String((r.corpo as { erro: string }).erro)).toContain('São seis');
+    expect(String((r.corpo as { erro: string }).erro)).toContain('São oito');
     expect(docker.chamadas).toHaveLength(0);
   });
 
@@ -316,6 +335,88 @@ describe('POST /containers/:id/app/restart (RN-1025)', () => {
     expect((await tratar(deps, { ...pedido('POST', rota), token: null })).status).toBe(401);
     expect((await tratar(deps, pedido('GET', rota))).status).toBe(405);
     expect(docker.chamadas).toHaveLength(0);
+  });
+});
+
+describe('GET /host/recursos (RN-1375)', () => {
+  it('devolve o que a porta leu, sem tocar na api nem aceitar parâmetro', async () => {
+    const { deps, docker } = montar({
+      buscarContexto: async () => {
+        throw new Error('não deve consultar a api');
+      },
+    });
+
+    const r = await tratar(deps, pedido('GET', '/host/recursos?x=1'));
+
+    expect(r.status).toBe(200);
+    expect(r.corpo).toEqual(RECURSOS);
+    expect(docker.chamadas).toHaveLength(0);
+  });
+
+  it('exige token e método GET', async () => {
+    const { deps } = montar();
+
+    expect((await tratar(deps, pedido('GET', '/host/recursos', undefined, null))).status).toBe(401);
+    expect((await tratar(deps, pedido('POST', '/host/recursos', {}))).status).toBe(405);
+  });
+});
+
+describe('POST /containers/:id/orfao/remove (RN-1376, RN-1377)', () => {
+  const rota = '/containers/p9/orfao/remove';
+
+  it('remove por projeto só quando a api responde 404', async () => {
+    const { deps, docker } = montar({
+      buscarContexto: async (id) => {
+        throw new ProjetoDesconhecidoError(id);
+      },
+    });
+
+    const r = await tratar(deps, pedido('POST', rota, { nome: 'outro', id: 'x' }));
+
+    expect(r.status).toBe(200);
+    expect(r.corpo).toEqual({ containers: ['brabo-x'], redes: [] });
+    expect(docker.chamadas).toEqual([{ operacao: 'removerPorProjeto', argumento: 'p9' }]);
+  });
+
+  it('projeto vivo é 409 e nada é removido', async () => {
+    const { deps, docker } = montar();
+
+    const r = await tratar(deps, pedido('POST', rota));
+
+    expect(r.status).toBe(409);
+    expect(docker.chamadas).toHaveLength(0);
+  });
+
+  it('api fora do ar é 502 e nada é removido (na dúvida, não toca)', async () => {
+    const { deps, docker } = montar({
+      buscarContexto: async () => {
+        throw new ApiIndisponivelError('http://api', 'respondeu 500', 500);
+      },
+    });
+
+    const r = await tratar(deps, pedido('POST', rota));
+
+    expect(r.status).toBe(502);
+    expect(docker.chamadas).toHaveLength(0);
+  });
+
+  it('id inválido é 422, exige token e POST', async () => {
+    const { deps, docker } = montar({
+      buscarContexto: async (id) => {
+        throw new ProjetoDesconhecidoError(id);
+      },
+    });
+
+    expect((await tratar(deps, pedido('POST', '/containers/a%20b/orfao/remove'))).status).toBe(422);
+    expect((await tratar(deps, pedido('POST', rota, {}, null))).status).toBe(401);
+    expect((await tratar(deps, pedido('GET', rota))).status).toBe(405);
+    expect(docker.chamadas).toHaveLength(0);
+  });
+
+  it('o roteador conhece só esse caminho', () => {
+    expect(rotaDeContainer(rota)).toEqual({ projectId: 'p9', operacao: 'orfao/remove' });
+    expect(rotaDeContainer('/containers/p9/orfao/outra')).toBeNull();
+    expect(rotaDeContainer('/containers/p9/orfao/remove/x')).toBeNull();
   });
 });
 

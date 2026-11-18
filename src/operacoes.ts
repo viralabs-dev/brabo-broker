@@ -1,12 +1,14 @@
 /**
- * As SEIS operações do broker (a sexta, `reiniciarApp`, é a RN-1025 / ADR 0264).
+ * As OITO operações do broker (a sexta, `reiniciarApp`, é a RN-1025 / ADR 0264;
+ * a sétima e a oitava, `recursosDoHost` e `removerOrfao`, são as RN-1375 a
+ * RN-1377 / ADR 0298 e não recebem spec nem nome do chamador).
  *
  * A porta (`packages/docker-port`) já contém o que se pode PEDIR ao daemon;
  * este arquivo contém o que se pode pedir ao BROKER, e a diferença entre os
  * dois é a única coisa que importa aqui: nenhuma destas funções recebe
  * especificação. Todas recebem `projectId` e vão buscar o resto.
  *
- * Uma sexta operação — `run`, `pull`, `build`, ou qualquer coisa que aceite
+ * Uma nona operação — `run`, `pull`, `build`, ou qualquer coisa que aceite
  * spec pronta do chamador — é decisão de produto com ADR, nunca um parâmetro a
  * mais. O mesmo vale para um campo novo no corpo de `exec`: se a resposta para
  * "como faço X?" for "acrescento um campo", a pergunta certa é se X devia
@@ -16,7 +18,7 @@
  *
  * Ele recebe `DependenciasDoBroker` e devolve valor ou lança. Quem traduz isso
  * em status e corpo JSON é `servidor.ts`. A separação existe para o teste
- * exercitar as seis operações sem socket, sem daemon e sem api — os três
+ * exercitar as oito operações sem socket, sem daemon e sem api — os três
  * substituídos por duplos.
  */
 
@@ -34,9 +36,16 @@ import {
   type PedidoDeExec,
   type ResultadoDaProvaDeCompose,
   type ResultadoDeExec,
+  type RecursosDoHost,
+  type RemovidosPorProjeto,
   type ResultadoDoReinicio,
 } from '@brabo/docker-port';
-import type { BuscarContexto, ContextoDoProjeto } from './api-client.ts';
+import {
+  garantirIdDeProjeto,
+  ProjetoDesconhecidoError,
+  type BuscarContexto,
+  type ContextoDoProjeto,
+} from './api-client.ts';
 import type { ConfiguracaoDoBroker } from './config.ts';
 import {
   caminhoDoClone,
@@ -292,6 +301,48 @@ export async function remove(
   projectId: string,
 ): Promise<void> {
   await deps.docker.remove(await nomeDaPasta(deps, projectId));
+}
+
+/**
+ * RN-1375: o que o host segura (portas de todo container `running`, containers
+ * e redes `brabo.managed`). Só leitura, sem parâmetro e sem `buscarContexto`.
+ */
+export async function recursosDoHost(deps: DependenciasDoBroker): Promise<RecursosDoHost> {
+  return await deps.docker.recursosDoHost();
+}
+
+/** O projeto ainda existe na api: o órfão não é órfão (RN-1376). */
+export class ProjetoVivoError extends Error {
+  readonly origem = 'politica';
+
+  constructor(projectId: string) {
+    super(
+      `o projeto ${projectId} existe na api: não é órfão. Use \`remove\` ` +
+        '(POST /containers/:id/remove). Nada foi tocado.',
+    );
+    this.name = 'ProjetoVivoError';
+  }
+}
+
+/**
+ * RN-1376: remove por rótulo o que sobrou de um projeto que a api não conhece.
+ * Quem prova o órfão é a api (404 na `container-spec`); só `ProjetoDesconhecidoError`
+ * libera a remoção. Projeto vivo é 409, api fora do ar propaga (502): na dúvida, nada é tocado.
+ */
+export async function removerOrfao(
+  deps: DependenciasDoBroker,
+  projectId: string,
+): Promise<RemovidosPorProjeto> {
+  const id = garantirIdDeProjeto(projectId);
+  try {
+    await deps.buscarContexto(id);
+  } catch (erro) {
+    if (erro instanceof ProjetoDesconhecidoError) {
+      return await deps.docker.removerPorProjeto(id);
+    }
+    throw erro;
+  }
+  throw new ProjetoVivoError(id);
 }
 
 /**
