@@ -109,7 +109,7 @@ então os comandos `exec` das lanes em andamento não são tocados.
 - **Os mesmos portões das vizinhas:** token de serviço (401), só `POST` (405),
   roteador fechado (`/containers/:id/app/restart` é o único caminho com `app`).
 
-- **Onde:** `apps/broker/src/operacoes.ts:303` (`reiniciarApp`),
+- **Onde:** `apps/broker/src/operacoes.ts:310` (`reiniciarApp`),
   `apps/broker/src/operacoes.ts:311` (`SemComandoDoAppError`),
   `apps/broker/src/servidor.ts:146` (rota), `apps/broker/src/servidor.ts:209` (despacho)
 - **Teste:** `apps/broker/src/servidor.spec.ts` ("POST /containers/:id/app/restart (RN-1025)")
@@ -163,3 +163,38 @@ enquanto há uma viva: `409`. O teto de disco é conferido depois do build, não
 - **Onde:** `src/prova-de-compose.ts:291` (`provaDeCompose`)
 - **Teste:** `src/prova-de-compose.spec.ts` ("prova de compose (Docker dublê)")
 - **Decisão arquitetural:** ADR 0297
+
+## O broker lê o host e remove o órfão (RN-1375 a RN-1377)
+
+### RN-1375 — `GET /host/recursos` só lê, sem parâmetro e sem spec {#rn-1375}
+
+Sétima operação do broker (ADR 0298). Devolve `{ portas, containers, redes }` de `DockerPort.recursosDoHost()`: `portas` cobre todo
+container `running` do host, e para o que não é `brabo.managed=true` leva só a porta (`projectId: null`; nome e imagem de terceiro
+não saem); `containers` e `redes` cobrem só o gerenciado, com `projectId`. Exige o token de serviço, aceita só `GET` (outro método
+é `405`), ignora query string e não consulta a api. A api usa a leitura para escolher a porta do app.
+
+- **Onde:** `src/servidor.ts:117` (`tratar`, ramo `/host/recursos`), `src/operacoes.ts:310` (`recursosDoHost`)
+- **Teste:** `src/servidor.spec.ts` ("GET /host/recursos (RN-1375)")
+- **Decisão arquitetural:** ADR 0298
+
+### RN-1376 — `POST /containers/:id/orfao/remove` só age quando a api responde 404 {#rn-1376}
+
+Oitava operação. O broker pergunta à api pela `container-spec` do projeto; só a resposta `404` (`ProjetoDesconhecidoError`) libera
+`DockerPort.removerPorProjeto(projectId)`, que remove por rótulo (`brabo.managed=true` + `brabo.project.id`) containers, serviços de
+QA e redes, e devolve `{ containers, redes }` dos nomes removidos. O corpo é descartado: nada do chamador escolhe o que sai.
+
+- **Onde:** `src/operacoes.ts:332` (`removerOrfao`), `src/servidor.ts:168` (`rotaDeContainer`, `orfao/remove`)
+- **Teste:** `src/servidor.spec.ts` ("POST /containers/:id/orfao/remove (RN-1376, RN-1377)")
+- **Decisão arquitetural:** ADR 0298
+
+### RN-1377 — Projeto vivo ou api fora do ar: o órfão não é removido {#rn-1377}
+
+Se a api conhece o projeto, a resposta é `409` (origem `politica`, "use `remove`") e nada é tocado. Se a api não responde (`502`,
+`ApiIndisponivelError`) ou responde erro, o erro sobe e nada é tocado: na dúvida, não se remove. O `projectId` é validado como
+segmento (`422` se inválido). O `409` nomeado `porta_ocupada` do ADR 0298 depende de `PortaDoHostOcupadaError` no contracts e não
+está na TAG `1.4.0-dev.1`; fica para a TAG seguinte.
+
+- **Onde:** `src/operacoes.ts:315` (`ProjetoVivoError`), `src/operacoes.ts:332` (`removerOrfao`)
+- **Teste:** `src/servidor.spec.ts` ("projeto vivo é 409", "api fora do ar é 502")
+- **Decisão arquitetural:** ADR 0298
+

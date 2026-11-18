@@ -5,6 +5,8 @@ import {
   type EspecificacaoDeContainer,
   type EstadoObservadoDoContainer,
   type PedidoDeExec,
+  type RecursosDoHost,
+  type RemovidosPorProjeto,
   type ResultadoDoReinicio,
   type ResultadoDeExec,
 } from '@brabo/docker-port';
@@ -46,7 +48,7 @@ class DockerDeTeste extends DockerPort {
   async start(spec: EspecificacaoDeContainer): Promise<ContainerIniciado> {
     this.chamadas += 1;
     this.ultimaSpec = spec;
-    return { containerId: 'c0ffee', nome: 'brabo-x', jaEstavaDePe: false };
+    return { containerId: 'c0ffee', nome: 'brabo-x', jaEstavaDePe: false, recriado: false };
   }
   async stop(): Promise<void> {}
   async remove(): Promise<void> {}
@@ -55,6 +57,12 @@ class DockerDeTeste extends DockerPort {
   }
   async reiniciarApp(): Promise<ResultadoDoReinicio> {
     return { reiniciou: false, motivo: 'sem_container' };
+  }
+  async recursosDoHost(): Promise<RecursosDoHost> {
+    return { portas: [], containers: [], redes: [] };
+  }
+  async removerPorProjeto(): Promise<RemovidosPorProjeto> {
+    return { containers: [], redes: [] };
   }
   async exec(_nome: string, _pedido: PedidoDeExec): Promise<ResultadoDeExec> {
     return { exitCode: 0, output: '', timedOut: false };

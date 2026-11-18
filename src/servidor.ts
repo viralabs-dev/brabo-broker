@@ -1,5 +1,5 @@
 /**
- * A superfície HTTP do broker: `/health` e as SEIS operações. Nada mais.
+ * A superfície HTTP do broker: `/health` e as OITO operações. Nada mais.
  *
  * ## O roteador é uma FUNÇÃO, e o `node:http` é um invólucro
  *
@@ -52,6 +52,9 @@ import {
   execQa,
   inspect,
   LocalizacaoIndisponivelError,
+  ProjetoVivoError,
+  recursosDoHost,
+  removerOrfao,
   provaDeComposeQa,
   ModoDeExecucaoNaoSuportadoError,
   RaizDeWorkspacesNaoConfiguradaError,
@@ -111,6 +114,18 @@ export async function tratar(
     };
   }
 
+  if (pedido.caminho.split('?')[0] === '/host/recursos') {
+    // RN-1375: leitura do host; sem parâmetro, sem corpo, sem projeto.
+    if (pedido.metodo !== 'GET') {
+      return { status: 405, corpo: { erro: 'método não permitido', origem: 'politica' } };
+    }
+    try {
+      return { status: 200, corpo: await recursosDoHost(deps) };
+    } catch (erro) {
+      return respostaDeErro(erro);
+    }
+  }
+
   const rota = rotaDeContainer(pedido.caminho);
   if (rota === null) {
     return { status: 404, corpo: { erro: 'rota desconhecida', origem: 'politica' } };
@@ -148,6 +163,10 @@ export function rotaDeContainer(caminho: string): RotaDeContainer | null {
   // RN-1025: `/containers/:id/app/restart` — rota fixa, sem parâmetro.
   if (partes.length === 4 && partes[2] === 'app' && partes[3] === 'restart') {
     return { projectId, operacao: 'app/restart' };
+  }
+  // RN-1376: `/containers/:id/orfao/remove` — rota fixa, sem parâmetro.
+  if (partes.length === 4 && partes[2] === 'orfao' && partes[3] === 'remove') {
+    return { projectId, operacao: 'orfao/remove' };
   }
   // ADR 0229: `/containers/:id/qa/:chave/<start|remove|exec|compose>` — fechado, chave de 8.
   const chave = partes[3];
@@ -214,13 +233,16 @@ async function despachar(
     case 'app/restart':
       // O corpo é descartado de propósito: o comando é o da api (RN-1025).
       return { status: 200, corpo: await reiniciarApp(deps, projectId) };
+    case 'orfao/remove':
+      // O corpo é descartado de propósito: a prova do órfão é o 404 da api.
+      return { status: 200, corpo: await removerOrfao(deps, projectId) };
     default:
       return {
         status: 404,
         corpo: {
           erro:
-            `operação "${operacao}" não existe. São seis: start, stop, ` +
-            'remove, exec, app/restart e a leitura (GET). Uma sétima é decisão de produto ' +
+            `operação "${operacao}" não existe. São oito: start, stop, ` +
+            'remove, exec, app/restart, orfao/remove, a leitura (GET) e GET /host/recursos. Uma nona é decisão de produto ' +
             'com ADR, nunca um parâmetro a mais',
           origem: 'politica',
         },
@@ -271,6 +293,7 @@ export function respostaDeErro(erro: unknown): RespostaDoBroker {
     erro instanceof ContainerAusenteError ||
     erro instanceof SemDecisaoDeImagemError ||
     erro instanceof SemComandoDoAppError ||
+    erro instanceof ProjetoVivoError ||
     erro instanceof ModoDeExecucaoNaoSuportadoError ||
     erro instanceof LocalizacaoIndisponivelError
   ) {
@@ -309,7 +332,7 @@ function corpo(erro: Error, origem: string): Record<string, unknown> {
 
 /**
  * O invólucro `node:http`. Só normaliza e serializa — toda decisão está em
- * `tratar`. Sem framework: são seis rotas, e uma dependência de servidor web
+ * `tratar`. Sem framework: são poucas rotas, e uma dependência de servidor web
  * aqui seria superfície nova num processo que fala com o Docker do host.
  */
 export function criarServidor(deps: DependenciasDoBroker): Server {
