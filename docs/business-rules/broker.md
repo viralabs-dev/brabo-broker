@@ -147,7 +147,7 @@ chave volta como `<serviço>.<campo>`. Recusado, nada sobe (`subiu: false`, orig
 limpo (sem `BRABO_SERVICE_TOKEN`, que o compose interpolaria). Sem plugin, sem clone, sem raiz visível ou sem imagem de
 sonda: `503` origem `infra` ("sem prova de compose").
 
-- **Onde:** `src/prova-de-compose.ts:118` (`recusasDoTexto`), `src/prova-de-compose.ts:136` (`recusasDoConfig`), `src/operacoes.ts:235` (`provaDeComposeQa`)
+- **Onde:** `src/prova-de-compose.ts:118` (`recusasDoTexto`), `src/prova-de-compose.ts:136` (`recusasDoConfig`), `src/operacoes.ts:244` (`provaDeComposeQa`)
 - **Teste:** `src/prova-de-compose.spec.ts` ("allowlist (cada campo recusado pelo nome)")
 - **Decisão arquitetural:** ADR 0297
 
@@ -173,7 +173,7 @@ container `running` do host, e para o que não é `brabo.managed=true` leva só 
 não saem); `containers` e `redes` cobrem só o gerenciado, com `projectId`. Exige o token de serviço, aceita só `GET` (outro método
 é `405`), ignora query string e não consulta a api. A api usa a leitura para escolher a porta do app.
 
-- **Onde:** `src/servidor.ts:117` (`tratar`, ramo `/host/recursos`), `src/operacoes.ts:310` (`recursosDoHost`)
+- **Onde:** `src/servidor.ts:96` (`tratar`, ramo `/host/recursos`), `src/operacoes.ts:310` (`recursosDoHost`)
 - **Teste:** `src/servidor.spec.ts` ("GET /host/recursos (RN-1375)")
 - **Decisão arquitetural:** ADR 0298
 
@@ -183,7 +183,7 @@ Oitava operação. O broker pergunta à api pela `container-spec` do projeto; s�
 `DockerPort.removerPorProjeto(projectId)`, que remove por rótulo (`brabo.managed=true` + `brabo.project.id`) containers, serviços de
 QA e redes, e devolve `{ containers, redes }` dos nomes removidos. O corpo é descartado: nada do chamador escolhe o que sai.
 
-- **Onde:** `src/operacoes.ts:332` (`removerOrfao`), `src/servidor.ts:168` (`rotaDeContainer`, `orfao/remove`)
+- **Onde:** `src/operacoes.ts:332` (`removerOrfao`), `src/servidor.ts:154` (`rotaDeContainer`, `orfao/remove`)
 - **Teste:** `src/servidor.spec.ts` ("POST /containers/:id/orfao/remove (RN-1376, RN-1377)")
 - **Decisão arquitetural:** ADR 0298
 
