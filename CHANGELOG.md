@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `@brabo/docker-port` sobe de `1.4.0-dev.1` para a final `1.4.0`, para a promoção `dev → main` de 25/11/2026 (a `main` consome artefato final do contracts).
+- Broker lê o host e remove órfão (AT-980, ADR 0298, RN-1375 a RN-1377): `GET /host/recursos` (portas de todo container `running`, containers e redes `brabo.managed`) e `POST /containers/:id/orfao/remove` (só age com 404 da api; projeto vivo é 409, api fora do ar não remove). `@brabo/docker-port` sobe para `1.4.0-dev.1` (`recriado` em `ContainerIniciado`, `recursosDoHost`, `removerPorProjeto`); o `409 porta_ocupada` espera a TAG com `PortaDoHostOcupadaError`.
+
 - `@brabo/docker-port` sobe de `1.3.0-dev.1` para a final `1.3.0`, para a promoção `dev → main` de 13/11/2026 (a `main` consome artefato final do contracts, ADR 0284).
 - Prova de compose (AT-922, ADR 0297, RN-1326/1327): `POST /containers/:id/qa/:chave/compose` valida o compose do clone limpo por allowlist (recusa nomeada por campo), força limites e override, roda `docker compose up --build --wait` num projeto descartável `brabo-qa-compose-<workspace>-<chave>`, sonda `/docs` e `/openapi.json` por dentro da rede e limpa SEMPRE (`down -v --rmi local --remove-orphans` e `builder prune`), com teto de 10 min e 4 GiB e uma prova por projeto. Imagem ganha `docker-cli-compose`; novas variáveis `BROKER_TRABALHO_DIR` (padrão `/trabalho`), `PROJECT_WORKSPACES_BROKER_ROOT`, `BRABO_PROJECTS_BROKER_BASE` e `BRABO_PROVA_SONDA_IMAGE`. `@brabo/docker-port` sobe para `1.3.0-dev.1`.
 
