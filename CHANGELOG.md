@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Serviços e `env` no container de trabalho (AT-1015, RN-1518 do contracts): o broker repassa `services` (só os não compartilhados) e `env` do contexto da api também no papel de trabalho, e o `env` também na instância de QA. Campos opcionais: sem eles a spec é a de antes. `@brabo/docker-port` sobe para `1.5.0-dev.1`.
 - `@brabo/docker-port` sobe de `1.4.0-dev.1` para a final `1.4.0`, para a promoção `dev → main` de 25/11/2026 (a `main` consome artefato final do contracts).
 - Broker lê o host e remove órfão (AT-980, ADR 0298, RN-1375 a RN-1377): `GET /host/recursos` (portas de todo container `running`, containers e redes `brabo.managed`) e `POST /containers/:id/orfao/remove` (só age com 404 da api; projeto vivo é 409, api fora do ar não remove). `@brabo/docker-port` sobe para `1.4.0-dev.1` (`recriado` em `ContainerIniciado`, `recursosDoHost`, `removerPorProjeto`); o `409 porta_ocupada` espera a TAG com `PortaDoHostOcupadaError`.
 
