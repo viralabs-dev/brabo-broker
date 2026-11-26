@@ -198,3 +198,10 @@ está na TAG `1.4.0-dev.1`; fica para a TAG seguinte.
 - **Teste:** `src/servidor.spec.ts` ("projeto vivo é 409", "api fora do ar é 502")
 - **Decisão arquitetural:** ADR 0298
 
+
+## Serviços e `env` no container de trabalho (AT-1015, RN-1518 do contracts)
+
+Não há RN própria do broker: a regra é a RN-1518 do `brabo-contracts` (o `docker-port` sobe os serviços no `localhost` do container de trabalho e injeta o `env`). O broker só repassa o que a api manda no contexto: `services` (descartando os `shared`, que são só da instância de QA) e `env` entram na spec do trabalho, e o `env` entra também na spec da instância de QA. Os dois campos são opcionais; sem eles a spec é idêntica à de antes. Como todo campo da spec, passam por `especificacaoValidada` (imagem com digest, régua do `env`), e a recusa chega ao usuário como erro de spec inválida com o nome do campo.
+
+- **Onde:** `src/operacoes.ts` (`especificacaoDoProjeto`, `servicosDaApi`), `src/api-client.ts` (`ContextoDoProjeto.services`/`env`)
+- **Teste:** `src/operacoes.spec.ts` ("AT-1015")
