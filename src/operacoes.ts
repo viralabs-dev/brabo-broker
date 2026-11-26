@@ -45,6 +45,7 @@ import {
   ProjetoDesconhecidoError,
   type BuscarContexto,
   type ContextoDoProjeto,
+  type ServicoDeQaDaApi,
 } from './api-client.ts';
 import type { ConfiguracaoDoBroker } from './config.ts';
 import {
@@ -587,8 +588,12 @@ async function especificacaoDoProjeto(
           })),
           dns: contexto.dns,
           hostsExtras: contexto.extraHosts?.map((h) => ({ nome: h.name, ip: h.ip })),
+          // AT-1015 (RN-1518): ausentes, a spec é a de antes. Só os não compartilhados
+          // sobem no trabalho; o compartilhado segue exclusivo da instância de QA.
+          servicos: servicosDaApi((contexto.services ?? []).filter((s) => s.shared !== true)),
         }
       : { qa: qaDoContexto(contexto, chaveDeQa) }),
+    env: contexto.env ?? undefined,
   });
 }
 
@@ -605,16 +610,20 @@ function qaDoContexto(contexto: ContextoDoProjeto, chaveDaRota: string): unknown
   }
   return {
     chave: qa.chave,
-    servicos: (qa.services ?? []).map((s) => ({
-      nome: s.name,
-      imagem: s.image,
-      env: s.env,
-      dados: s.tmpfs,
-      usuario: s.user ?? undefined,
-      comando: s.command ?? undefined,
-      compartilhado: s.shared,
-    })),
+    servicos: servicosDaApi(qa.services ?? []),
   };
+}
+
+function servicosDaApi(servicos: ServicoDeQaDaApi[]): unknown[] {
+  return servicos.map((s) => ({
+    nome: s.name,
+    imagem: s.image,
+    env: s.env,
+    dados: s.tmpfs,
+    usuario: s.user ?? undefined,
+    comando: s.command ?? undefined,
+    compartilhado: s.shared,
+  }));
 }
 
 /**

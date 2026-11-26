@@ -344,6 +344,35 @@ describe('spec ampliada lida da api (ADR 0228/0229)', () => {
     await expect(startQa(outra.deps, 'p1', 'abcd1234')).rejects.toThrow(/chave/);
   });
 
+  it('AT-1015: serviços não compartilhados e env vão na spec do trabalho (RN-1518)', async () => {
+    const { deps, docker } = montar({
+      env: { DATABASE_URL: 'postgres://t:t@127.0.0.1:5432/t' },
+      services: [
+        { name: 'db', image: DIGEST, tmpfs: ['/data'], shared: false, user: '70:70' },
+        { name: 'cache', image: DIGEST, shared: true },
+      ],
+    });
+    await start(deps, 'p1');
+    expect(docker.ultimaSpec?.env).toEqual({ DATABASE_URL: 'postgres://t:t@127.0.0.1:5432/t' });
+    expect(docker.ultimaSpec?.servicos).toEqual([
+      { nome: 'db', imagem: DIGEST, dados: ['/data'], usuario: '70:70' },
+    ]);
+  });
+
+  it('AT-1015: sem services nem env a spec do trabalho é a de antes', async () => {
+    const { deps, docker } = montar();
+    await start(deps, 'p1');
+    expect(docker.ultimaSpec).not.toHaveProperty('servicos');
+    expect(docker.ultimaSpec).not.toHaveProperty('env');
+  });
+
+  it('AT-1015: o env também vai na spec da instância de QA', async () => {
+    const { deps, docker } = montar({ ...qaCtx(), env: { DATABASE_URL: 'postgres://t:t@127.0.0.1:5432/t' } });
+    await startQa(deps, 'p1', 'abcd1234');
+    expect(docker.ultimaSpec?.env).toEqual({ DATABASE_URL: 'postgres://t:t@127.0.0.1:5432/t' });
+    expect(docker.ultimaSpec).not.toHaveProperty('servicos');
+  });
+
   it('QA: serviço sem digest vindo da api é recusado', async () => {
     const { deps } = montar({ qa: { chave: 'abcd1234', services: [{ name: 'db', image: 'pg:16' }] } });
     await expect(startQa(deps, 'p1', 'abcd1234')).rejects.toThrow(/digest/);

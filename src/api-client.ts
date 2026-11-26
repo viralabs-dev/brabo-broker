@@ -100,6 +100,10 @@ export interface ContextoDoProjeto {
   extraHosts?: Array<{ name: string; ip: string }> | null;
   /** AT-612: presente SÓ na leitura com `papel=qa`. `chave` = os 8 do taskId. */
   qa?: { chave: string; services: ServicoDeQaDaApi[] } | null;
+  /** AT-1015 (RN-1518): serviços NÃO compartilhados que sobem no `localhost` do container de trabalho. Opcional. */
+  services?: ServicoDeQaDaApi[] | null;
+  /** AT-1015 (RN-1518): variáveis de conexão (ex.: `DATABASE_URL`) do trabalho e da instância de QA. Opcional. */
+  env?: Record<string, string> | null;
 }
 
 /** Leitura da spec de uma instância de QA: `?papel=qa&task=<chave>`. */
