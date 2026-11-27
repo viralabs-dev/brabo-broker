@@ -3,6 +3,8 @@ import {
   DockerIndisponivelError,
   DockerPort,
   PullExcedeuTetoError,
+  ServicoDeDadosMorreuError,
+  EspecificacaoInvalidaError,
   PONTO_DE_MONTAGEM,
   type ContainerIniciado,
   type EspecificacaoDeContainer,
@@ -489,6 +491,33 @@ describe('classificação de falha', () => {
     expect(corpo.erro).toContain('node:24-bookworm');
     expect(corpo.erro).toContain('30000ms');
     expect(corpo.erro).toContain('foi cancelado');
+  });
+
+  it('serviço de dados que morreu é 422 com code, serviço e últimas linhas (AT-1015)', async () => {
+    const { deps, docker } = montar();
+    docker.erroAoIniciar = new ServicoDeDadosMorreuError('postgres', 1, ['FATAL: sem senha']);
+
+    const r = await tratar(deps, pedido('POST', '/containers/p/start', {}));
+
+    expect(r.status).toBe(422);
+    expect(r.corpo).toMatchObject({
+      origem: 'politica',
+      code: 'servico_de_dados_morreu',
+      servico: 'postgres',
+      exitCode: 1,
+      ultimasLinhas: ['FATAL: sem senha'],
+    });
+    expect((r.corpo as { erro: string }).erro).toContain('postgres');
+  });
+
+  it('especificação inválida é 422 com o campo (AT-1015)', async () => {
+    const { deps, docker } = montar();
+    docker.erroAoIniciar = new EspecificacaoInvalidaError('services[0].usuario', 'obrigatório');
+
+    const r = await tratar(deps, pedido('POST', '/containers/p/start', {}));
+
+    expect(r.status).toBe(422);
+    expect(r.corpo).toMatchObject({ origem: 'politica', campo: 'services[0].usuario' });
   });
 
   it('projeto `runner` é 409 — quem sobe container lá é o runner, na máquina do usuário', async () => {
