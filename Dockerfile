@@ -12,7 +12,7 @@
 # ---------------------------------------------------------------------------
 # Estágio 1: dependências + bundle.
 # ---------------------------------------------------------------------------
-FROM node:26.13.0-alpine3.24@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS build
+FROM node:26.13.1-alpine3.24@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS build
 
 # pnpm sem corepack (AT-360): o Node 25+ não traz corepack. Tarball do registry
 # conferido contra o sha512 GRAVADO aqui (`npm view pnpm@<v> dist.integrity`, em
@@ -42,7 +42,7 @@ RUN pnpm build
 # ---------------------------------------------------------------------------
 # Estágio 2: runtime. O bundle, o CLI do docker, e mais nada.
 # ---------------------------------------------------------------------------
-FROM node:26.13.0-alpine3.24@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS runtime
+FROM node:26.13.1-alpine3.24@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS runtime
 
 ARG BRABO_VERSION=dev
 
