@@ -32,6 +32,10 @@ COPY . .
 # O código não é montado no compose de dev, então o bundle da imagem é o que roda.
 RUN pnpm build
 
+# Revisão do código que gerou a imagem (o compose passa o build-arg; vazio é aceito).
+ARG BROKER_REVISION=""
+LABEL org.opencontainers.image.revision=$BROKER_REVISION
+
 USER node
 
 EXPOSE 8090

@@ -35,6 +35,7 @@ import {
   DockerIndisponivelError,
   EspecificacaoInvalidaError,
   PullExcedeuTetoError,
+ServicoDeDadosMorreuError,
 } from '@brabo/docker-port';
 import {
   ApiIndisponivelError,
@@ -300,8 +301,25 @@ export function respostaDeErro(erro: unknown): RespostaDoBroker {
     // 409: o pedido é legível e o estado do mundo não permite atendê-lo.
     return { status: 409, corpo: corpo(erro, 'politica') };
   }
+  if (erro instanceof ServicoDeDadosMorreuError) {
+    // 422 (RN-1540 do contracts): o serviço subiu e morreu na janela de conferência; o `code`
+    // e as últimas linhas (já mascaradas) dizem qual e por quê, sem ir ao log do daemon.
+    return {
+      status: 422,
+      corpo: {
+        ...corpo(erro, 'politica'),
+        code: erro.code,
+        servico: erro.servico,
+        exitCode: erro.exitCode,
+        ultimasLinhas: erro.ultimasLinhas,
+      },
+    };
+  }
+  if (erro instanceof EspecificacaoInvalidaError) {
+    // 422 com o campo recusado (ex.: `usuario`/`dados` ausentes num serviço de dados).
+    return { status: 422, corpo: { ...corpo(erro, 'politica'), campo: erro.campo } };
+  }
   if (
-    erro instanceof EspecificacaoInvalidaError ||
     erro instanceof ComandoInvalidoError ||
     erro instanceof DiretorioForaDoEscopoError ||
     erro instanceof IdDeProjetoInvalidoError

@@ -205,3 +205,7 @@ Não há RN própria do broker: a regra é a RN-1518 do `brabo-contracts` (o `do
 
 - **Onde:** `src/operacoes.ts` (`especificacaoDoProjeto`, `servicosDaApi`), `src/api-client.ts` (`ContextoDoProjeto.services`/`env`)
 - **Teste:** `src/operacoes.spec.ts` ("AT-1015")
+
+### Alteração (AT-1015): serviço de dados morto e `campo` da spec inválida
+
+Nenhuma RN nova do broker (regras: RN-1540 e a recusa de `usuario`/`dados` do `brabo-contracts`). `respostaDeErro` (`src/servidor.ts`) mapeia `ServicoDeDadosMorreuError` para `422` com `origem: "politica"`, `code: "servico_de_dados_morreu"`, `servico`, `exitCode` (`null` se o container sumiu) e `ultimasLinhas` (já mascaradas pelo docker-port), e `EspecificacaoInvalidaError` para `422` com `campo`. Testes: `src/servidor.spec.ts` ("AT-1015").
