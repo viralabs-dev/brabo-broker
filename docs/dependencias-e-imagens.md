@@ -8,7 +8,7 @@ O `@brabo/docker-port` é o pacote `@viralabs-dev/brabo-docker-port`, publicado 
 sem `^`, hoje `1.2.0`:
 
 ```json
-"@brabo/docker-port": "npm:@viralabs-dev/brabo-docker-port@1.6.0-dev.1"
+"@brabo/docker-port": "npm:@viralabs-dev/brabo-docker-port@1.7.0-dev.1"
 ```
 
 O `.npmrc` do repo só aponta o registry do escopo (`@viralabs-dev:registry=https://npm.pkg.github.com`).
