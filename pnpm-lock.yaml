@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@brabo/docker-port':
-        specifier: npm:@viralabs-dev/brabo-docker-port@1.6.0-dev.1
-        version: '@viralabs-dev/brabo-docker-port@1.6.0-dev.1'
+        specifier: npm:@viralabs-dev/brabo-docker-port@1.7.0-dev.1
+        version: '@viralabs-dev/brabo-docker-port@1.7.0-dev.1'
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.3
@@ -582,8 +582,8 @@ packages:
   '@types/node@24.13.3':
     resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
 
-  '@viralabs-dev/brabo-docker-port@1.6.0-dev.1':
-    resolution: {integrity: sha512-INwYQPsguqrT5UFkdoNkr3SslU9hDyaeCWP80Lld7oIJC9Wq1CkWnZf28diUVq2CyRzJPJ1qqnJNCQfgU/sK9A==, tarball: https://npm.pkg.github.com/download/@viralabs-dev/brabo-docker-port/1.6.0-dev.1/7997a3244187a3eb76c8d14c868c1c45d2719733}
+  '@viralabs-dev/brabo-docker-port@1.7.0-dev.1':
+    resolution: {integrity: sha512-HlBorxB0zLwWa/sjnpj2vr5xnMSBuaz9v3k+Z5EOc6BTkXkwXldA6VvkmTuV1C4ir2yEEeGGvxdyfwAhEgGd9Q==, tarball: https://npm.pkg.github.com/download/@viralabs-dev/brabo-docker-port/1.7.0-dev.1/a4fc567460ca131e5e11a6b37f4c29b9a95244fe}
 
   '@vitest/expect@4.1.12':
     resolution: {integrity: sha512-vFlTt+YEu9WBpNjdGayNmlMVzrWPi1+sv853/7t2FU7hpO5gAFBKHzQmkCq5Xjpr+evegF2994LQT3hF3mRlqQ==}
@@ -1357,7 +1357,7 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@viralabs-dev/brabo-docker-port@1.6.0-dev.1': {}
+  '@viralabs-dev/brabo-docker-port@1.7.0-dev.1': {}
 
   '@vitest/expect@4.1.12':
     dependencies:

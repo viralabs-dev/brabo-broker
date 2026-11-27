@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `@brabo/docker-port` sobe de `1.6.0-dev.1` para `1.7.0-dev.1` (contracts PR #55, AT-1037): o comando do app vai por `BRABO_APP_CMD` e `exec`/`start` religam o serviço de dados quando o container de trabalho reiniciou, com aviso no começo da saída do `exec`. Sem mudança de assinatura; o broker só repassa.
+
 - Serviço de dados morto vira erro (AT-1015, RN-1540 do contracts): `ServicoDeDadosMorreuError` é `422` com `code: "servico_de_dados_morreu"`, `servico`, `exitCode` e `ultimasLinhas` (já mascaradas); `EspecificacaoInvalidaError` passa a levar `campo` no corpo. `Dockerfile.dev` ganha `ARG BROKER_REVISION` e o label `org.opencontainers.image.revision`. `@brabo/docker-port` sobe para `1.6.0-dev.1`.
 - Serviços e `env` no container de trabalho (AT-1015, RN-1518 do contracts): o broker repassa `services` (só os não compartilhados) e `env` do contexto da api também no papel de trabalho, e o `env` também na instância de QA. Campos opcionais: sem eles a spec é a de antes. `@brabo/docker-port` sobe para `1.5.0-dev.1`.
 - `@brabo/docker-port` sobe de `1.4.0-dev.1` para a final `1.4.0`, para a promoção `dev → main` de 25/11/2026 (a `main` consome artefato final do contracts).
