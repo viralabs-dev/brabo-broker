@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- CI (AT-1029 F5): repina todos os workflows no `brabo-ci` `v1.6.0` (`e212b71`) e liga, no `refs.yml`, os checks `refs-entre-repos`, `rn-unica` e `indice-de-rn`. Nenhum é obrigatório; os três rodam localmente com saída 0 nesta PR.
 - `@brabo/docker-port` sobe de `1.6.0-dev.1` para `1.7.0-dev.1` (contracts PR #55, AT-1037): o comando do app vai por `BRABO_APP_CMD` e `exec`/`start` religam o serviço de dados quando o container de trabalho reiniciou, com aviso no começo da saída do `exec`. Sem mudança de assinatura; o broker só repassa.
 
 - Serviço de dados morto vira erro (AT-1015, RN-1540 do contracts): `ServicoDeDadosMorreuError` é `422` com `code: "servico_de_dados_morreu"`, `servico`, `exitCode` e `ultimasLinhas` (já mascaradas); `EspecificacaoInvalidaError` passa a levar `campo` no corpo. `Dockerfile.dev` ganha `ARG BROKER_REVISION` e o label `org.opencontainers.image.revision`. `@brabo/docker-port` sobe para `1.6.0-dev.1`.
